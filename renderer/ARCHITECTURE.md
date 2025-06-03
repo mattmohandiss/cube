@@ -1,14 +1,14 @@
-# Shader Module Architecture
+# Renderer Module Architecture
 
 ## Overview
 
-The shader module provides GPU-accelerated rendering for 3D isometric cubes using GLSL shaders and hardware instancing. It handles shader management, mesh generation, and optimized rendering of large cube-based worlds.
+The renderer module provides GPU-accelerated rendering for 3D isometric cubes using GLSL shaders and hardware instancing. It handles shader management, mesh generation, and optimized rendering of large cube-based worlds.
 
-The module serves as a performance enhancement layer that enables efficient rendering of complex scenes with thousands of cubes in a single draw call. It abstracts the complexities of GPU programming while maintaining visual consistency with the CPU-based rendering approach.
+The module serves as the core rendering system that enables efficient rendering of complex scenes with thousands of cubes in a single draw call. It abstracts the complexities of GPU programming while providing high-performance rendering for the isometric cube world.
 
 ## Module Structure
 
-The shader module is divided into three logical components, each with a specific responsibility:
+The renderer module is divided into three logical components, each with a specific responsibility:
 
 1. **Core**: Manages shader loading, compilation, and uniform updates. Handles the foundational shader operations and provides an interface for updating shader parameters.
 2. **Mesh**: Implements mesh generation and instance data creation. Responsible for creating the base cube geometry and generating per-instance data for efficient rendering.
@@ -21,7 +21,7 @@ The module implements isometric projection in the vertex shader:
 
 1. **Vertex Transformation**: Transforms 3D cube positions to 2D screen coordinates directly on the GPU.
 2. **View Transformation**: Applies camera position offsets and handles screen centering.
-3. **Simplified Projection Factors**: Uses projection factors that match the CPU-based rendering for visual consistency, rather than mathematically perfect isometric factors.
+3. **Optimized Projection Factors**: Uses carefully tuned projection factors that create visually pleasing isometric views.
 4. **Instanced Rendering**: Uses hardware instancing to efficiently render many cubes with a single draw call.
 
 ### Instance Data Management
@@ -66,8 +66,8 @@ For visual consistency and performance:
 - **Instance Attribute Packing**: Minimizes the amount of data transferred to the GPU
 - **Shader-Based Culling**: Performs face culling directly in the vertex shader
 - **Memory Management**: Properly releases old instance meshes to prevent memory leaks
-- **Hardware Support Detection**: Checks for instanced drawing support and gracefully falls back to CPU rendering
-- **View Distance Optimization**: Applies the same view distance optimization as CPU rendering
+- **Hardware Support Detection**: Checks for instanced drawing support and provides clear error messages
+- **View Distance Optimization**: Applies efficient view distance filtering for performance
 
 ## Extendability
 

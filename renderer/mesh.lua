@@ -1,4 +1,4 @@
--- shader/mesh.lua
+-- renderer/mesh.lua
 -- Cube mesh generation and instance data management for GPU rendering
 
 local mesh = {}

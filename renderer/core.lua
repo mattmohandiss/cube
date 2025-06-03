@@ -1,5 +1,5 @@
--- shader/core.lua
--- Core shader loading and management functionality
+-- renderer/core.lua
+-- Core rendering shader loading and management functionality
 
 local core = {}
 local events = require('events')
@@ -7,7 +7,7 @@ local events = require('events')
 -- Initialize all shaders
 function core.init()
     -- Load cube rendering shader
-    core.cube = core.load("shaders/cube/vertex.glsl", "shaders/cube/fragment.glsl")
+    core.cube = core.load("renderer/shaders/cube/vertex.glsl", "renderer/shaders/cube/fragment.glsl")
     
     -- Set default uniform values
     local screenWidth, screenHeight = love.graphics.getDimensions()

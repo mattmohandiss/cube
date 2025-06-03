@@ -49,7 +49,7 @@ For performance optimization:
 
 ## Integration with Other Modules
 
-1. **Cube Module**: The world module leverages the cube module to create visual representations of terrain elements, using cubes with different colors and positions.
+1. **Shader Module**: Utilizes the shader module for GPU-accelerated rendering of terrain cubes.
 2. **Camera Module**: Coordinates with the camera module to determine visibility and implement efficient rendering of the terrain.
 3. **Event System**: Broadcasts information about world generation, terrain changes, and performance metrics through the event system.
 4. **Debug Module**: Provides diagnostic information about terrain generation and world state for debugging purposes.
@@ -72,7 +72,7 @@ For performance optimization:
 - **Spatial Cube Lookup**: Uses a 3D grid map for O(1) neighbor lookups instead of costly O(n) terrain searches.
 - **Targeted Visibility Updates**: When cubes are added/removed, only updates visibility for affected neighbors rather than all cubes
 - **GPU-Accelerated Rendering**: Uses GLSL shaders and hardware instancing to render thousands of cubes in a single draw call
-- **Hybrid Rendering System**: Supports both CPU-based and GPU-based rendering with consistent visual output
+- **GPU-Accelerated Rendering**: Exclusively uses GLSL shaders and hardware instancing for efficient rendering
 - **Efficient Instance Data Generation**: Encodes cube visibility as bitfields for compact GPU representation
 
 ## Extendability

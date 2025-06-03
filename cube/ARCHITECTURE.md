@@ -2,19 +2,18 @@
 
 ## Overview
 
-The cube module provides a comprehensive system for managing, rendering, and manipulating 3D cubes in an isometric environment. It handles cube geometry, visibility determination, and integrates with the camera module for proper projection and rendering.
+The cube module provides a comprehensive system for managing and manipulating 3D cubes in an isometric environment. It handles cube geometry and visibility determination, while rendering is handled by the renderer module.
 
-The module serves as a core building block of the 3D visualization system, providing both the data structures and algorithms needed to represent and display cubes with proper depth, lighting, and perspective effects. It abstracts the complexities of 3D geometry while offering a clean interface for the rest of the application.
+The module serves as a core building block of the 3D visualization system, providing the data structures and algorithms needed to represent cubes with proper depth and perspective effects. It abstracts the complexities of 3D geometry while offering a clean interface for the rest of the application.
 
-The module supports both CPU-based rendering and GPU-accelerated rendering via GLSL shaders with hardware instancing for optimal performance with large numbers of cubes.
+The module focuses on cube data representation, leaving all rendering operations to the dedicated renderer module which uses GPU-accelerated rendering via GLSL shaders with hardware instancing.
 
 ## Module Structure
 
-The cube module is divided into three logical components, each with a specific responsibility:
+The cube module is divided into two logical components, each with a specific responsibility:
 
 1. **Core**: Manages basic cube properties, creation, and initialization. Handles the fundamental data structures that represent a cube and provides the public API for cube instantiation.
 2. **Geometry**: Handles cube vertices, faces, and visibility calculations. Implements the mathematical operations for determining cube structure and which faces should be visible.
-3. **Rendering**: Implements drawing, coloring, and depth management. Translates the geometric information into visual output using the appropriate rendering techniques.
 
 ## Key Features / Algorithms
 
@@ -38,27 +37,27 @@ For proper rendering of overlapping faces:
 1. **Face Depth**: Calculate depth value for each visible face using the centralized depth formula from the camera module.
 2. **Painter's Algorithm**: Sort faces by depth and draw from back to front, ensuring correct visual layering.
 
-### Face Coloring System
-Each face has a different brightness to enhance the 3D appearance:
+### Cube Properties
+Each cube maintains essential properties for representation and rendering:
 
-1. **Base Color**: The fundamental color of the cube, defining its overall appearance.
-2. **Brightness Factors**: Multipliers for each face to simulate lighting from a consistent light source.
-3. **Final Color**: Product of base color and face-specific brightness, creating the illusion of depth and lighting.
+1. **Position**: The cube's location in the 3D world space.
+2. **Color**: The fundamental color of the cube, defining its overall appearance.
+3. **Visible Faces**: Information about which faces should be visible based on the camera position and adjacent cubes.
 
 ## Data Flow
 
 1. **Creation**: A cube is instantiated with position and color parameters
 2. **Geometry Processing**: 3D corners are calculated and visible faces determined based on viewing angle
-3. **Projection**: 3D positions are transformed to 2D screen coordinates via the camera module
-4. **Depth Sorting**: Visible faces are sorted from back to front for proper layering
-5. **Rendering**: Each face is drawn with appropriate color and shading
-6. **Debug Information**: Optional debug data is broadcast to the event system
+3. **Visibility Updates**: Face visibility is updated based on adjacent cubes and view boundaries
+4. **Data Access**: The renderer module accesses cube data to create GPU instance data
+5. **Debug Information**: Optional debug data is broadcast to the event system
 
 ## Integration with Other Modules
 
-1. **Camera Module**: The cube module relies on the camera module for converting 3D corners to 2D screen coordinates, calculating depth, and handling the actual polygon rendering.
-2. **Event System**: Debug information about vertices, faces, and rendering state is broadcast through events for monitoring and debugging.
-3. **Debug Module**: Visual debugging features like outline rendering are coordinated with the debug module to enable development tools.
+1. **Renderer Module**: The cube data is used by the renderer module for GPU-accelerated drawing.
+2. **World Module**: Manages collections of cubes and updates their visibility based on neighbors.
+3. **Event System**: Debug information about vertices and faces is broadcast through events for monitoring and debugging.
+4. **Debug Module**: Visual debugging features are coordinated with the debug module to enable development tools.
 
 ## Performance Considerations
 

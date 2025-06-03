@@ -1,4 +1,4 @@
--- shader/rendering.lua
+-- renderer/rendering.lua
 -- GPU-based cube rendering system using shaders and instanced drawing
 
 local rendering = {}
@@ -6,11 +6,10 @@ local rendering = {}
 local events = require('events')
 local dbg = require('dbg')
 local camera = require('camera')
-local shaderCore = require('shader.core')
-local shaderMesh = require('shader.mesh')
+local shaderCore = require('renderer.core')
+local shaderMesh = require('renderer.mesh')
 
 -- Configuration
-rendering.enabled = true
 rendering.viewDistance = 64
 
 -- Internal state
@@ -18,18 +17,15 @@ local baseCubeMesh = nil
 local instanceMesh = nil
 local instanceCount = 0
 
--- Initialize the shader renderer
+-- Initialize the renderer
 function rendering.init()
     -- Check if instanced rendering is supported
     local supported = love.graphics.getSupported()
-    -- for key, value in pairs(supported) do
-    --     print(key .. ": " .. tostring(value))
-    -- end
+    
     if not supported.instancing then
-        print("Warning: Instanced rendering is not supported on this GPU.")
-        print("Falling back to CPU-based rendering.")
-        rendering.enabled = false
-        events.world_stats_updated.notify("Shader Rendering", "Not Supported")
+        print("Error: Instanced rendering is not supported on this GPU.")
+        print("GPU-based rendering is required for this application.")
+        events.world_stats_updated.notify("GPU Rendering", "Not Supported")
         return false
     end
     
@@ -40,9 +36,9 @@ function rendering.init()
     baseCubeMesh = shaderMesh.create()
     
     -- Add debug information
-    dbg.setValue("Shader Rendering", "Enabled")
-    events.world_stats_updated.notify("Shader Rendering", "Enabled")
-    dbg.setValue("Draw Calls (Shader)", 0)
+    dbg.setValue("GPU Rendering", "Enabled")
+    events.world_stats_updated.notify("GPU Rendering", "Enabled")
+    dbg.setValue("Draw Calls", 0)
     dbg.setValue("Instances Rendered", 0)
     dbg.setValue("Total Triangles", 0)
     
@@ -77,8 +73,8 @@ end
 
 -- Render cubes using the shader
 function rendering.render(cubes, cameraPosition)
-    if not rendering.enabled or not baseCubeMesh then
-        return cubes -- pass through to standard renderer if disabled or not initialized
+    if not baseCubeMesh then
+        error("Rendering system not properly initialized")
     end
     
     -- Update shader uniforms
@@ -97,9 +93,6 @@ function rendering.render(cubes, cameraPosition)
     -- Force shader to use the latest uniform values
     love.graphics.flushBatch()
     
-    -- Debug information for troubleshooting
-    print("Rendering with outlines: " .. tostring(worldRendering.outlinesEnabled))
-    
     -- Draw the instanced cubes
     love.graphics.drawInstanced(baseCubeMesh, instanceCount)
     
@@ -108,11 +101,16 @@ function rendering.render(cubes, cameraPosition)
     
     -- Update debug stats
     local stats = love.graphics.getStats()
-    dbg.setValue("Draw Calls (Shader)", stats.drawcalls)
+    dbg.setValue("Draw Calls", stats.drawcalls)
     dbg.setValue("Instances Rendered", instanceCount)
     dbg.setValue("Total Triangles", instanceCount * 12) -- 12 triangles per cube (2 per face)
     
     return cubes
+end
+
+-- Function to toggle cube outlines
+function rendering.toggleOutlines(enabled)
+    return shaderCore.toggleOutlines(enabled)
 end
 
 return rendering

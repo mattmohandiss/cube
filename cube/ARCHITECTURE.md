@@ -33,7 +33,7 @@ A key optimization is determining which faces are visible from the current viewi
 ### Depth Sorting
 For proper rendering of overlapping faces:
 
-1. **Face Depth**: Calculate depth value for each visible face using a specialized formula.
+1. **Face Depth**: Calculate depth value for each visible face using the centralized depth formula from the camera module.
 2. **Painter's Algorithm**: Sort faces by depth and draw from back to front, ensuring correct visual layering.
 
 ### Face Coloring System
@@ -61,9 +61,16 @@ Each face has a different brightness to enhance the 3D appearance:
 ## Performance Considerations
 
 - **Backface Culling**: Reduces the number of faces to process and draw, significantly improving rendering performance for complex scenes
-- **Efficient Depth Sorting**: Sorting is performed once per cube, minimizing sort operations and computational overhead
+- **Centralized Depth Calculation**: Uses a single implementation of the depth formula for consistency
+- **Efficient Depth Sorting**: Faces are sorted by depth during rendering, while cubes are pre-sorted and re-sorted when changes occur
 - **Data Reuse**: Face calculations reuse corner data to avoid redundant transformations and memory duplication
 - **Minimal State**: The module maintains only the necessary state information to reduce memory usage
+- **Precomputed Geometry**: Calculates and stores cube vertices and visible faces at creation time rather than during rendering, significantly reducing per-frame computations
+- **Optimized Rendering Pipeline**: Removed backward compatibility code and debug overhead for maximum performance
+- **Fixed-Angle Optimizations**: Takes advantage of the fixed camera angle to pre-determine which faces will be visible for each cube
+- **Neighbor-Aware Face Culling**: Dynamically hides faces that are obscured by adjacent cubes, dramatically reducing render operations
+- **Context-Sensitive Visibility**: Maintains two sets of visible faces - camera-angle visible and neighbor-aware visible - to enable fast updates
+- **View Edge Adaptation**: Special handling for cubes at the perimeter of the view area to show outer faces, creating a clean visual boundary
 
 ## Extendability
 
@@ -74,12 +81,17 @@ The architecture is designed to be extended in several ways:
 3. Support additional shapes beyond cubes while reusing the visibility and depth-sorting algorithms
 4. Add animation capabilities for movement and transformation
 5. Implement more sophisticated lighting models for enhanced visual effects
+6. Support dynamic world modification with proper visibility and cache handling
 
 ## Implementation Details (Optional)
 
-### Debug Features
-The module includes several debug capabilities to aid in development:
+### Rendering Optimizations
+The module includes several optimizations to achieve high performance:
 
-1. **Vertex Information**: Logging the position of each projected vertex for troubleshooting
-2. **Face Information**: Broadcasting face composition and state for monitoring
-3. **Visual Debugging**: Optional outline rendering of faces to visualize the structure
+1. **Creation-time Computation**: Stores 3D corner positions at cube creation time to avoid recalculating during rendering
+2. **Precomputed Visibility**: Determines which faces are visible based on the fixed camera angle during cube creation
+3. **Streamlined Rendering**: Minimizes calculations during the render loop by leveraging precomputed data
+4. **Neighbor-Based Face Culling**: Provides functionality to update visible faces based on neighbors, hiding interior faces that would never be seen
+5. **Enhanced Edge Detection**: Shows faces at the boundary of the view distance with special handling for corner cases. Side faces of cubes at corners are always shown regardless of neighbors, creating a clean visual edge as the camera moves through the world
+6. **Cache Invalidation**: Intelligently invalidates caches when world structure changes occur
+7. **Adjacent Cube Updates**: When cubes are added or removed, only the affected neighbors have their visibility recalculated

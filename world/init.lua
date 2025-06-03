@@ -79,6 +79,26 @@ function world.getCubes()
   return core.getTerrainCubes()
 end
 
+-- Update visibility of all cubes based on current camera position
+function world.updateAllCubesVisibility(cameraPosition, viewDistance)
+  return core.updateAllCubesVisibility(cameraPosition, viewDistance)
+end
+
+-- Add a new cube to the world
+function world.addCube(x, y, z, color)
+  return core.addCube(x, y, z, color)
+end
+
+-- Remove a cube from the world
+function world.removeCube(x, y, z)
+  return core.removeCube(x, y, z)
+end
+
+-- Get a cube at the specified position
+function world.getCubeAt(x, y, z)
+  return core.getCubeAt(x, y, z)
+end
+
 -- Render the world with the current camera position
 function world.render(cameraPosition)
   return rendering.renderTerrain(core.terrainCubes, cameraPosition)

@@ -4,7 +4,7 @@
 local projection = {}
 
 -- Tile dimensions for isometric rendering
-projection.tileSize = 10
+projection.tileSize = 15
 
 -- Function to project 3D coordinates to 2D isometric coordinates
 function projection.iso(x, y, z, cameraPosition)

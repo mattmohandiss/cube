@@ -19,6 +19,7 @@ function cube.init()
   
   -- Expose core functions
   cube.new = core.new
+  cube.setVisibleFaces = core.setVisibleFaces
   
   -- Expose geometry properties and functions
   cube.cornerOffsets = geometry.cornerOffsets
@@ -32,7 +33,6 @@ function cube.init()
   cube.draw = rendering.draw
   cube.drawCube = rendering.drawCube
   cube.drawFace = rendering.drawFace
-  cube.logVertexDebugInfo = rendering.logVertexDebugInfo
 end
 
 return cube

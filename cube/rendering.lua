@@ -23,7 +23,7 @@ function rendering.getFaceColor(base, fi)
   return { base[1] * b, base[2] * b, base[3] * b }
 end
 
--- Draw one face, plus debug info and an outline
+-- Draw one face
 function rendering.drawFace(proj, fi, baseColor)
   local verts = geometry.faces[fi]
   local col = rendering.getFaceColor(baseColor, fi)
@@ -38,48 +38,29 @@ function rendering.drawFace(proj, fi, baseColor)
   
   -- Use the camera to draw the polygon
   camera.drawPolygon(facePoints, col, true)
-  
-  -- Emit face info debug event
-  local parts = {}
-  for _, v in ipairs(verts) do parts[#parts + 1] = tostring(v) end
-  -- Check if the event exists, and if not, just don't emit it
-  if events.cube_face_info then
-    events.cube_face_info.notify(fi, table.concat(parts, ","))
-  end
-end
-
--- Log each vertex
-function rendering.logVertexDebugInfo(proj)
-  for i = 1, 8 do
-    local p = proj[i]
-    -- Check if the event exists, and if not, just don't emit it
-    if events.cube_vertex_info then
-      events.cube_vertex_info.notify(i, string.format("(%.1f,%.1f)", p[1], p[2]))
-    end
-  end
 end
 
 -- Draw a cube with color wrapper
 function rendering.drawCube(obj)
   camera.withColor(function()
-    rendering.draw(obj.x, obj.y, obj.z, obj.color)
+    -- Use precomputed corners3D and visibleFaces from the cube object
+    rendering.draw(obj.x, obj.y, obj.z, obj.color, obj.corners3D, obj.visibleFaces)
   end)
 end
 
--- Draw a cube at world (x,y,z)
-function rendering.draw(x, y, z, baseColor)
-  -- Generate 3D corners and project them to 2D
-  local corners3D = geometry.getCorners3D(x, y, z)
-  local projected = camera.projectCorners(corners3D)
+-- Draw a cube at world (x,y,z) using precomputed geometry
+function rendering.draw(x, y, z, baseColor, corners3D, visibleFaces)
   baseColor = baseColor or { 1, 1, 1 }
-
-  -- Collect only faces whose normals face the camera
+  
+  -- Project corners to 2D screen space
+  local projected = camera.projectCorners(corners3D)
+  
+  -- Use precomputed visible faces, just calculate depths
   local toDraw = {}
-  for idx, face in ipairs(geometry.faces) do
-    if geometry.isFaceVisible(idx, corners3D) then
-      local depth = camera.calculateFaceDepth(corners3D, face)
-      table.insert(toDraw, { idx = idx, depth = depth })
-    end
+  for _, faceInfo in ipairs(visibleFaces) do
+    local face = geometry.faces[faceInfo.index]
+    local depth = camera.calculateFaceDepth(corners3D, face)
+    table.insert(toDraw, { idx = faceInfo.index, depth = depth })
   end
 
   -- Painter's algorithm: draw farther faces first
@@ -89,9 +70,6 @@ function rendering.draw(x, y, z, baseColor)
   for _, entry in ipairs(toDraw) do
     rendering.drawFace(projected, entry.idx, baseColor)
   end
-
-  -- Debug: log vertex positions
-  rendering.logVertexDebugInfo(projected)
 end
 
 return rendering

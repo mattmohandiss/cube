@@ -6,8 +6,8 @@ local rendering = {}
 -- Calculate isometric depth for sorting
 -- Used for proper back-to-front rendering in isometric view
 function rendering.calculateIsoDepth(x, y, z)
-    -- This depth formula prioritizes x and y equally, with z having a different impact
-    -- Used for sorting objects from back to front in isometric rendering
+    -- This depth formula prioritizes x and y equally, with z having double impact
+    -- Used for sorting objects and faces from back to front in isometric rendering
     return - (x + y + 2*z)
 end
 

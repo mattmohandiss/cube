@@ -29,6 +29,7 @@ The terrain system converts noise values into usable game elements:
 1. **Height Mapping**: Transforms noise values into terrain elevation at each coordinate.
 2. **Terrain Types**: Assigns different terrain characteristics based on height and other factors.
 3. **Cube Representation**: Converts terrain data into 3D cubes positioned appropriately in the world.
+4. **Dynamic Cube Management**: Provides functions to add and remove cubes with proper updating of visibility and sorting.
 
 ### Chunk-based Loading
 For performance optimization:
@@ -61,6 +62,15 @@ For performance optimization:
 - **Progressive Loading**: Implements priority-based loading to ensure smooth gameplay while new areas are generated
 - **Height-based Culling**: Only creates cubes for visible or significant height changes, reducing the number of rendered objects
 - **Precomputed Draw Order**: Terrain cubes are pre-sorted by depth during world generation, eliminating the need for sorting during rendering. This provides a significant performance boost, especially with large numbers of cubes.
+- **Dynamic Re-sorting**: When cubes are added or removed, only performs necessary re-sorting rather than recalculating everything
+- **Camera Position Caching**: Only recalculates visible cubes when the camera moves beyond a threshold distance, avoiding redundant filtering operations.
+- **Smart Cache Invalidation**: Invalidates visibility caches only when necessary due to world structure changes
+- **Early Exit Distance Checks**: Optimizes cube visibility filtering by quickly excluding cubes based on axis-aligned distance checks before calculating full distance.
+- **Precomputed Cube Geometry**: Calculates and stores cube vertices and visible faces at creation time rather than during rendering, significantly reducing per-frame computations.
+- **Neighbor-based Face Culling**: Hides cube faces that are entirely obscured by adjacent cubes, dramatically reducing the number of faces rendered.
+- **View Edge Detection**: Dynamically shows faces at the edge of the view radius, ensuring proper visualization of terrain boundaries as the camera moves.
+- **Spatial Cube Lookup**: Uses a 3D grid map for O(1) neighbor lookups instead of costly O(n) terrain searches.
+- **Targeted Visibility Updates**: When cubes are added/removed, only updates visibility for affected neighbors rather than all cubes
 
 ## Extendability
 
@@ -68,9 +78,10 @@ The architecture is designed to be extended in several ways:
 
 1. **Additional Terrain Types**: Add new terrain variations with unique properties and appearances
 2. **Biome Systems**: Implement different regions with distinct terrain characteristics
-3. **Terrain Modification**: Add capability for dynamic terrain changes (digging, building, etc.)
+3. **Dynamic Terrain Modification**: The system supports adding and removing cubes with proper updates to depth sorting, neighbor relationships, and visibility
 4. **Advanced Generation Algorithms**: Incorporate more sophisticated terrain generation techniques beyond basic Perlin noise
 5. **Environmental Effects**: Add systems for weather, time of day, or other environmental factors that affect the terrain
+6. **Interactive World Editing**: The robust cube management system enables real-time editing of the world
 
 ## Implementation Details (Optional)
 

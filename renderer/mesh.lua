@@ -103,11 +103,9 @@ function mesh.createInstanceData(visibleCubes)
     local instanceData = {}
     
     for _, cube in ipairs(visibleCubes) do
-        -- Calculate face visibility flags (as a bit field)
-        local visibilityFlags = 0
-        for _, faceInfo in ipairs(cube.visibleFaces) do
-            visibilityFlags = visibilityFlags + 2^(faceInfo.index-1)
-        end
+        -- With GPU rendering, all faces are potentially visible
+        -- Set all bits to 1 (63 = all 6 face bits set)
+        local visibilityFlags = 63  -- 2^0 + 2^1 + 2^2 + 2^3 + 2^4 + 2^5
         
         -- Add this cube's instance data
         table.insert(instanceData, {

@@ -28,10 +28,6 @@ vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords) {
     // Calculate distance from camera origin (assumed at world center)
     float distToCenter = length(vPosition.xy);
     
-    // Edge detection for visual boundary
-    float edgeFactor = smoothstep(viewDistance - 2.0, viewDistance - 0.5, distToCenter);
-    bool isAtEdge = edgeFactor > 0.0;
-    
     // Apply face-specific brightness
     int faceIdx = int(vFaceIndex) - 1; // Convert to 0-based for array access
     float brightness = faceBrightness[faceIdx];
@@ -39,12 +35,6 @@ vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords) {
     // Apply lighting model with higher ambient minimum
     float nDotL = max(0.6, dot(normalize(vNormal), normalize(-lightDirection)));
     vec3 litColor = vColor.rgb * brightness * nDotL;
-    
-    // Edge highlighting effect for cubes at view boundary
-    if (isAtEdge) {
-        // Enhance edge cubes slightly to make them pop
-        litColor = mix(litColor, litColor * 1.2, edgeFactor * 0.5);
-    }
     
     // Debug visualization mode
     if (showDebugInfo) {
@@ -84,7 +74,7 @@ vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords) {
         // Create a slightly thicker, more visible black outline
         return vec4(mix(litColor, vec3(0.0), 0.3 * wireframe), 1.0);
     } else {
-        // Normal rendering for face interior
+        // Normal rendering for face interior with fully opaque alpha
         return vec4(litColor, 1.0);
     }
     }

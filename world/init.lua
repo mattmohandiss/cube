@@ -79,10 +79,8 @@ function world.getCubes()
   return core.getTerrainCubes()
 end
 
--- Update visibility of all cubes based on current camera position
-function world.updateAllCubesVisibility(cameraPosition, viewDistance)
-  return core.updateAllCubesVisibility(cameraPosition, viewDistance)
-end
+-- This function was removed as part of GPU rendering optimization
+-- Face visibility is now handled by the GPU
 
 -- Add a new cube to the world
 function world.addCube(x, y, z, color)

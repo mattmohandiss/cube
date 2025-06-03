@@ -17,13 +17,10 @@ function cube.init()
   
   -- Expose core functions
   cube.new = core.new
-  cube.setVisibleFaces = core.setVisibleFaces
   
   -- Expose geometry properties and functions
   cube.cornerOffsets = geometry.cornerOffsets
   cube.faces = geometry.faces
-  cube.getCorners3D = geometry.getCorners3D
-  cube.isFaceVisible = geometry.isFaceVisible
 end
 
 return cube

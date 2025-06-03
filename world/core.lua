@@ -72,47 +72,7 @@ function core.getCubeAt(x, y, z)
   return core.cubeMap[x] and core.cubeMap[x][y] and core.cubeMap[x][y][z]
 end
 
--- Function to update visibility based on neighbors and view circle
-function core.updateCubeVisibility(terrainCube, cameraPosition, viewDistance)
-  local x, y, z = terrainCube.x, terrainCube.y, terrainCube.z
-  
-  -- Check for neighbors
-  local neighbors = {
-    top = core.getCubeAt(x, y, z+1) ~= nil,
-    bottom = core.getCubeAt(x, y, z-1) ~= nil,
-    front = core.getCubeAt(x, y-1, z) ~= nil,
-    back = core.getCubeAt(x, y+1, z) ~= nil,
-    right = core.getCubeAt(x+1, y, z) ~= nil,
-    left = core.getCubeAt(x-1, y, z) ~= nil
-  }
-  
-  -- Check if at view edge
-  local distanceToCamera = math.sqrt((x - cameraPosition.x)^2 + (y - cameraPosition.y)^2)
-  local isNearViewEdge = distanceToCamera > viewDistance - 1.5
-  
-  -- Determine the position relative to the camera
-  local isFront = y > cameraPosition.y
-  local isBack = y < cameraPosition.y
-  local isRight = x < cameraPosition.x
-  local isLeft = x > cameraPosition.x
-  
-  -- Create flags for which faces should be shown at view edge
-  local isAtViewEdge = {
-    -- Show edges that face outward from the view
-    front = isNearViewEdge and isFront,
-    back = isNearViewEdge and isBack,
-    right = isNearViewEdge and isRight,
-    left = isNearViewEdge and isLeft,
-    
-    -- Also show side faces for cubes at the front edge facing the camera
-    showSides = isNearViewEdge and 
-      ((isFront and (isRight or isLeft)) or  -- Front corners
-       (isBack and (isRight or isLeft)))     -- Back corners
-  }
-  
-  -- Update the cube's visible faces
-  cube.setVisibleFaces(terrainCube, neighbors, isAtViewEdge)
-end
+-- Face visibility is now handled by GPU
 
 -- Create cube objects from terrain data
 function core.createTerrainCubes()
@@ -170,9 +130,6 @@ function core.addCube(x, y, z, color)
     return a.depth > b.depth
   end)
   
-  -- Update visibility for adjacent cubes
-  core.updateAdjacentCubesVisibility(x, y, z)
-  
   -- Invalidate world caches
   require('world.rendering').invalidateCache()
   
@@ -200,49 +157,15 @@ function core.removeCube(x, y, z)
     core.cubeMap[x][y][z] = nil
   end
   
-  -- Update visibility for adjacent cubes
-  core.updateAdjacentCubesVisibility(x, y, z)
-  
   -- Invalidate world caches
   require('world.rendering').invalidateCache()
   
   return true
 end
 
--- Update visibility of adjacent cubes at the given position
-function core.updateAdjacentCubesVisibility(x, y, z)
-  -- Define the 6 adjacent positions
-  local adjacentPositions = {
-    {x, y, z+1}, -- top
-    {x, y, z-1}, -- bottom
-    {x, y-1, z}, -- front
-    {x+1, y, z}, -- right
-    {x, y+1, z}, -- back
-    {x-1, y, z}  -- left
-  }
-  
-  -- Get camera position for view edge calculation
-  local camera = require('camera')
-  local cameraPosition = camera.position
-  local viewDistance = require('world.rendering').viewDistance or 64
-  
-  -- Update visibility for each adjacent cube
-  for _, pos in ipairs(adjacentPositions) do
-    local adjacentCube = core.getCubeAt(pos[1], pos[2], pos[3])
-    if adjacentCube then
-      core.updateCubeVisibility(adjacentCube, cameraPosition, viewDistance)
-    end
-  end
-end
+-- Face visibility is now handled by GPU
 
--- Update visibility of all cubes based on current camera position
-function core.updateAllCubesVisibility(cameraPosition, viewDistance)
-  viewDistance = viewDistance or 64 -- Default to standard view distance
-  
-  for _, terrainCube in ipairs(core.terrainCubes) do
-    core.updateCubeVisibility(terrainCube, cameraPosition, viewDistance)
-  end
-end
+-- Face visibility is now handled by GPU
 
 -- Get terrain height at given coordinates
 function core.getHeight(x, y)

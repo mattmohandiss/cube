@@ -7,12 +7,6 @@ local core = {}
 core.position = { x = 0, y = 0 }
 core.moveSpeed = 10 -- How much to move per keypress
 
--- Get screen center coordinates
-function core.getScreenCenter()
-  local screenWidth, screenHeight = love.graphics.getDimensions()
-  return screenWidth / 2, screenHeight / 2
-end
-
 -- Move the camera by the given delta
 function core.move(dx, dy)
   core.position.x = core.position.x + dx

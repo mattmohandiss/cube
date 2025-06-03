@@ -10,16 +10,13 @@ local rendering = {}
 -- Initialize the rendering module
 function rendering.init()
   -- Set up any rendering-specific configuration
-  rendering.viewDistance = 64 -- Maximum distance to render terrain
+  rendering.viewDistance = 72 -- Maximum distance to render terrain
   
-  -- Initialize cache variables
+  -- Initialize cache variables for distance-based culling
   rendering.lastCameraX = 0
   rendering.lastCameraY = 0
   rendering.cachedVisibleCubes = {}
   rendering.cacheThreshold = 1.0 -- Distance the camera must move to invalidate cache
-  rendering.lastVisibilityUpdateX = 0
-  rendering.lastVisibilityUpdateY = 0
-  rendering.visibilityUpdateThreshold = 2.0 -- Distance before updating cube face visibility
   
   -- Initialize renderer
   local rendererInitialized = renderer.init()
@@ -51,8 +48,6 @@ function rendering.invalidateCache()
   rendering.cachedVisibleCubes = {}
   rendering.lastCameraX = 0
   rendering.lastCameraY = 0
-  rendering.lastVisibilityUpdateX = 0
-  rendering.lastVisibilityUpdateY = 0
 end
 
 -- Cache settings defined in init()
@@ -60,19 +55,6 @@ end
 -- Get a list of visible terrain cubes based on camera position
 function rendering.getVisibleCubes(terrainCubes, cameraPosition)
   local cameraX, cameraY = cameraPosition.x, cameraPosition.y
-  
-  -- Check if camera moved enough to require updating cube face visibility
-  local visibilityUpdateNeeded = math.abs(cameraX - rendering.lastVisibilityUpdateX) > rendering.visibilityUpdateThreshold or 
-                                 math.abs(cameraY - rendering.lastVisibilityUpdateY) > rendering.visibilityUpdateThreshold
-  
-  if visibilityUpdateNeeded then
-    -- Update which faces are visible for each cube based on neighbors and view edge
-    require('world').updateAllCubesVisibility(cameraPosition, rendering.viewDistance)
-    
-    -- Update last visibility update position
-    rendering.lastVisibilityUpdateX = cameraX
-    rendering.lastVisibilityUpdateY = cameraY
-  end
   
   -- Check if we can use the cached result for filtering
   local cameraMoved = math.abs(cameraX - rendering.lastCameraX) > rendering.cacheThreshold or 

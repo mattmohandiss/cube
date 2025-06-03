@@ -66,14 +66,13 @@ For performance optimization:
 - **Camera Position Caching**: Only recalculates visible cubes when the camera moves beyond a threshold distance, avoiding redundant filtering operations.
 - **Smart Cache Invalidation**: Invalidates visibility caches only when necessary due to world structure changes
 - **Early Exit Distance Checks**: Optimizes cube visibility filtering by quickly excluding cubes based on axis-aligned distance checks before calculating full distance.
-- **Precomputed Cube Geometry**: Calculates and stores cube vertices and visible faces at creation time rather than during rendering, significantly reducing per-frame computations.
-- **Neighbor-based Face Culling**: Hides cube faces that are entirely obscured by adjacent cubes, dramatically reducing the number of faces rendered.
-- **View Edge Detection**: Dynamically shows faces at the edge of the view radius, ensuring proper visualization of terrain boundaries as the camera moves.
 - **Spatial Cube Lookup**: Uses a 3D grid map for O(1) neighbor lookups instead of costly O(n) terrain searches.
-- **Targeted Visibility Updates**: When cubes are added/removed, only updates visibility for affected neighbors rather than all cubes
-- **GPU-Accelerated Rendering**: Uses GLSL shaders and hardware instancing to render thousands of cubes in a single draw call
-- **GPU-Accelerated Rendering**: Exclusively uses GLSL shaders and hardware instancing for efficient rendering
-- **Efficient Instance Data Generation**: Encodes cube visibility as bitfields for compact GPU representation
+- **GPU-Accelerated Rendering**: Exclusively uses GLSL shaders and hardware instancing for efficient rendering of thousands of cubes in a single draw call
+- **GPU Depth Buffering**: Relies on the GPU's depth buffer for correct rendering order and face culling, eliminating the need for complex CPU-side visibility calculations
+- **GPU Face Culling**: Uses built-in GPU backface culling instead of CPU-side calculations, dramatically improving performance when moving the camera
+- **GPU-based Occlusion**: Hidden face removal is handled by the GPU's z-buffer, eliminating the need for neighbor-based face culling on the CPU
+- **Streamlined Cube Data**: Cubes store only essential position and color data, minimizing memory usage and data transfer to the GPU
+- **Single-Pass Rendering**: All visible cubes are rendered in a single draw call through instancing, minimizing state changes and API overhead
 
 ## Extendability
 

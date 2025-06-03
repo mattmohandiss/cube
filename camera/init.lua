@@ -1,12 +1,11 @@
 -- camera/init.lua
--- Main camera module that brings together core, projection, and rendering functionality
+-- Main camera module that brings together core and projection functionality
 
 local events = require('events')
 
 -- Internal module requires
 local core = require('camera.core')
 local projection = require('camera.projection')
-local rendering = require('camera.rendering')
 
 -- Create the main camera object
 local camera = {}
@@ -23,11 +22,6 @@ function camera.init()
 end
 
 -- CORE FUNCTIONS
-
--- Get screen center coordinates
-function camera.getScreenCenter()
-  return core.getScreenCenter()
-end
 
 -- Move the camera by the given delta
 function camera.move(dx, dy)
@@ -51,36 +45,12 @@ function camera.iso(x, y, z)
   return sx, sy
 end
 
--- Function to project 3D corners to 2D
-function camera.projectCorners(corners3D)
-  return projection.projectCorners(corners3D, camera.iso)
-end
-
--- RENDERING FUNCTIONS
-
--- Sort objects by their isometric depth (used for painter's algorithm)
-function camera.sortByDepth(objects)
-  return rendering.sortByDepth(objects)
-end
-
--- Calculate depth for a face's center point
-function camera.calculateFaceDepth(corners3D, faceVertices)
-  return rendering.calculateFaceDepth(corners3D, faceVertices)
-end
-
--- Draw a polygon with the specified vertices and color
-function camera.drawPolygon(vertices, color, outlined)
-  rendering.drawPolygon(vertices, color, outlined)
-end
-
--- Save and restore color state
-function camera.withColor(func)
-  rendering.withColor(func)
-end
-
 -- Calculate isometric depth for sorting
+-- This is kept for compatibility with existing code
 function camera.calculateIsoDepth(x, y, z)
-  return rendering.calculateIsoDepth(x, y, z)
+  -- This depth formula prioritizes x and y equally, with z having double impact
+  -- Same formula as used in the vertex shader for depth calculations
+  return - (x + y + 2*z)
 end
 
 return camera

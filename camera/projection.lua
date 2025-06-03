@@ -26,13 +26,5 @@ function projection.iso(x, y, z, cameraPosition)
   return sx, sy, projectionFactor
 end
 
--- Function to project 3D corners to 2D
-function projection.projectCorners(corners3D, iso)
-  local pts2D = {}
-  for i, p in ipairs(corners3D) do
-    pts2D[i] = { iso(p[1], p[2], p[3]) }
-  end
-  return pts2D
-end
 
 return projection

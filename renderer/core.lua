@@ -1,3 +1,4 @@
+---@diagnostic disable: missing-fields
 -- renderer/core.lua
 -- Core rendering shader loading and management functionality
 

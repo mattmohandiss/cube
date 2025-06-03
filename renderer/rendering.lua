@@ -83,6 +83,13 @@ function rendering.render(cubes, cameraPosition)
     -- Update instance data
     rendering.updateInstanceData(cubes)
     
+    -- Enable depth testing and depth writing
+    -- This ensures faces behind other faces are properly occluded
+    love.graphics.setDepthMode("lequal", true)
+    
+    -- Ensure we're using the correct blend mode (no alpha blending)
+    love.graphics.setBlendMode("alpha", "premultiplied")
+    
     -- Render all cubes in a single draw call
     love.graphics.setShader(shaderCore.cube)
     
@@ -96,8 +103,10 @@ function rendering.render(cubes, cameraPosition)
     -- Draw the instanced cubes
     love.graphics.drawInstanced(baseCubeMesh, instanceCount)
     
-    -- Reset the shader state
+    -- Reset the shader and graphics state
     love.graphics.setShader()
+    love.graphics.setDepthMode()
+    love.graphics.setBlendMode("alpha")
     
     -- Update debug stats
     local stats = love.graphics.getStats()

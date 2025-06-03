@@ -14,7 +14,16 @@ end
 
 -- Factory method for creating new cubes
 function core.new(x, y, z, color)
-  return { x = x or 0, y = y or 0, z = z or 0, color = color or { 1, 1, 1 } }
+  -- Add precomputed depth for sorting
+  local depth = -(x + y + 2*z)  -- Same formula as in camera.calculateIsoDepth
+  
+  return { 
+    x = x or 0, 
+    y = y or 0, 
+    z = z or 0, 
+    color = color or { 1, 1, 1 },
+    depth = depth  -- Store precomputed depth
+  }
 end
 
 return core

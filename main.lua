@@ -4,11 +4,7 @@ local input = require('input')
 local camera = require('camera')
 local cube = require('cube')
 local events = require('events')
-
--- World data
-local world = {
-  cubes = {} -- Will hold all our cubes
-}
+local world = require('world')
 
 -- LÖVE load callback
 function love.load()
@@ -17,20 +13,31 @@ function love.load()
   input.init()
   cube.init()
   camera.init()
+  
+  -- Set up world with terrain generation options
+  local worldOptions = {
+    size = {
+      width = 250,
+      length = 250,
+      height = 16
+    },
+    terrain = {
+      scale = 0.05,
+      octaves = 7,
+      persistence = 0.3,
+      baseHeight = 1,
+      seed = os.time() -- Random seed for unique terrain each time
+    }
+  }
+  
+  -- Initialize the world module with our options
+  world.init(worldOptions)
 
   -- Initial camera position event
   events.camera_moved.notify(camera.position.x, camera.position.y)
 
-  -- Create some cubes at different positions
-  table.insert(world.cubes, cube.new(0, 0, 0, { 1, 1, 1 }))      -- Center white cube
-  -- table.insert(world.cubes, cube.new(1, 0, 0, { 1, 0.5, 0.5 }))  -- Red cube to the east
-  table.insert(world.cubes, cube.new(0, 1, 0, { 0.5, 1, 0.5 }))  -- Green cube to the south
-  table.insert(world.cubes, cube.new(-1, 0, 0, { 0.5, 0.5, 1 })) -- Blue cube to the west
-  table.insert(world.cubes, cube.new(0, -1, 0, { 1, 1, 0.5 }))   -- Yellow cube to the north
-  table.insert(world.cubes, cube.new(0, 0, 1, { 1, 0.5, 1 }))    -- Purple cube on top of center
-
   -- Add debug values via events
-  events.world_stats_updated.notify("Number of Cubes", #world.cubes)
+  events.world_stats_updated.notify("Number of Terrain Cubes", #world.getCubes())
   events.world_stats_updated.notify("Movement Speed", camera.moveSpeed)
 end
 
@@ -38,6 +45,9 @@ end
 function love.update(dt)
   -- Handle camera movement with arrow keys
   input.handleCameraMovement(dt)
+  
+  -- Update world
+  world.update(dt)
 
   -- Update debug information
   dbg.update(dt)
@@ -48,13 +58,8 @@ function love.draw()
   -- Clear screen
   love.graphics.clear(0.1, 0.1, 0.2)
 
-  -- Sort cubes for proper isometric rendering (back to front)
-  camera.sortByDepth(world.cubes)
-
-  -- Draw all cubes
-  for _, cubeObj in ipairs(world.cubes) do
-    cube.drawCube(cubeObj)
-  end
+  -- Render terrain with the current camera position
+  world.render(camera.position)
 
   -- Draw debug overlay
   dbg.draw()

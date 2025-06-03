@@ -5,7 +5,7 @@ local core = {}
 
 -- Camera position and settings
 core.position = { x = 0, y = 0 }
-core.moveSpeed = 0.5 -- How much to move per keypress
+core.moveSpeed = 10 -- How much to move per keypress
 
 -- Get screen center coordinates
 function core.getScreenCenter()

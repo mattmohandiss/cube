@@ -9,7 +9,9 @@ core.validEvents = {
   "world_stats_updated", 
   "projection_factor_updated",
   "cube_face_info",
-  "cube_vertex_info"
+  "cube_vertex_info",
+  "terrain_generated",
+  "world_cube_created"
 }
 
 -- Internal storage for event listeners

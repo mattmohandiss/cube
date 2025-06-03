@@ -6,6 +6,8 @@ The cube module provides a comprehensive system for managing, rendering, and man
 
 The module serves as a core building block of the 3D visualization system, providing both the data structures and algorithms needed to represent and display cubes with proper depth, lighting, and perspective effects. It abstracts the complexities of 3D geometry while offering a clean interface for the rest of the application.
 
+The module supports both CPU-based rendering and GPU-accelerated rendering via GLSL shaders with hardware instancing for optimal performance with large numbers of cubes.
+
 ## Module Structure
 
 The cube module is divided into three logical components, each with a specific responsibility:
@@ -95,3 +97,6 @@ The module includes several optimizations to achieve high performance:
 5. **Enhanced Edge Detection**: Shows faces at the boundary of the view distance with special handling for corner cases. Side faces of cubes at corners are always shown regardless of neighbors, creating a clean visual edge as the camera moves through the world
 6. **Cache Invalidation**: Intelligently invalidates caches when world structure changes occur
 7. **Adjacent Cube Updates**: When cubes are added or removed, only the affected neighbors have their visibility recalculated
+8. **GPU-Accelerated Rendering**: Provides a shader-based rendering system that leverages hardware instancing to draw thousands of cubes in a single draw call
+9. **Bitfield Visibility Flags**: Encodes face visibility data as bitfields for efficient processing on the GPU
+10. **Unified Lighting Model**: Maintains consistent lighting between CPU and GPU rendering approaches

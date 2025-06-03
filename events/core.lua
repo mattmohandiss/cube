@@ -11,7 +11,11 @@ core.validEvents = {
   "cube_face_info",
   "cube_vertex_info",
   "terrain_generated",
-  "world_cube_created"
+  "world_cube_created",
+  "toggle_shader_rendering",
+  "toggle_shader_outlines",
+  "debug_toggle",
+  "window_resized"
 }
 
 -- Internal storage for event listeners

@@ -71,3 +71,9 @@ function love.keypressed(key)
   dbg.keypressed(key)
   input.keypressed(key)
 end
+
+-- LÖVE resize callback
+function love.resize(width, height)
+  -- Notify all listeners that the window has been resized
+  events.window_resized.notify(width, height)
+end

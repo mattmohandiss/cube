@@ -35,6 +35,15 @@ function keyboard.keypressed(core, key)
         events.world_stats_updated.notify("Movement Speed", core.camera.moveSpeed)
     elseif key == "escape" then
         love.event.quit()
+    -- Toggle shader rendering
+    elseif key == "s" then
+        events.toggle_shader_rendering.notify()
+    -- Toggle debug visualization
+    elseif key == "d" then
+        events.debug_toggle.notify()
+    -- Toggle cube outlines
+    elseif key == "o" then
+        events.toggle_shader_outlines.notify()
     end
 end
 

@@ -71,6 +71,9 @@ For performance optimization:
 - **View Edge Detection**: Dynamically shows faces at the edge of the view radius, ensuring proper visualization of terrain boundaries as the camera moves.
 - **Spatial Cube Lookup**: Uses a 3D grid map for O(1) neighbor lookups instead of costly O(n) terrain searches.
 - **Targeted Visibility Updates**: When cubes are added/removed, only updates visibility for affected neighbors rather than all cubes
+- **GPU-Accelerated Rendering**: Uses GLSL shaders and hardware instancing to render thousands of cubes in a single draw call
+- **Hybrid Rendering System**: Supports both CPU-based and GPU-based rendering with consistent visual output
+- **Efficient Instance Data Generation**: Encodes cube visibility as bitfields for compact GPU representation
 
 ## Extendability
 

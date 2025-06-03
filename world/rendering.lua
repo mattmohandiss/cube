@@ -3,6 +3,7 @@
 
 local camera = require('camera')
 local events = require('events')
+local shader = require('shader')
 
 local rendering = {}
 
@@ -20,7 +21,31 @@ function rendering.init()
   rendering.lastVisibilityUpdateY = 0
   rendering.visibilityUpdateThreshold = 2.0 -- Distance before updating cube face visibility
   
+  -- Initialize shader renderer
+  shader.init()
+  shader.viewDistance = rendering.viewDistance
+  shader.enabled = true -- Enable shader rendering by default
+  
+  -- Add toggle for shader rendering
+  events.toggle_shader_rendering.listen(function()
+    shader.enabled = not shader.enabled
+    events.world_stats_updated.notify("Shader Rendering", 
+                                     shader.enabled and "Enabled" or "Disabled")
+  end)
+  
+  -- Track outline state
+  rendering.outlinesEnabled = true -- Initial state (matches the default in shader/core.lua)
+  
+  -- Add toggle for shader outlines
+  events.toggle_shader_outlines.listen(function()
+    rendering.outlinesEnabled = not rendering.outlinesEnabled
+    shader.toggleOutlines(rendering.outlinesEnabled)
+    events.world_stats_updated.notify("Cube Outlines", 
+                                     rendering.outlinesEnabled and "Enabled" or "Disabled")
+  end)
+  
   events.world_stats_updated.notify("Terrain View Distance", rendering.viewDistance)
+  events.world_stats_updated.notify("Cube Outlines", rendering.outlinesEnabled and "Enabled" or "Disabled")
 end
 
 -- Invalidate all caches when world structure changes
@@ -96,6 +121,12 @@ function rendering.renderTerrain(terrainCubes, cameraPosition)
   -- Get only the cubes that are within view distance
   local visibleCubes = rendering.getVisibleCubes(terrainCubes, cameraPosition)
   
+  -- Use shader renderer if enabled
+  if shader.enabled then
+    return shader.render(visibleCubes, cameraPosition)
+  end
+  
+  -- Otherwise use existing CPU-based rendering
   -- No need to sort here - terrainCubes are already pre-sorted by depth
   -- and visibleCubes maintains that order since we used table.insert
   

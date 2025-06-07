@@ -4,6 +4,34 @@
 local events = require('events')
 
 local keyboard = {}
+-- Track debug visualization state
+local debugVisualizationEnabled = false
+
+-- Handle worker movement with WASD keys
+function keyboard.handleWorkerMovement(core, key)
+    local entities = core.world.getEntities()
+    if #entities > 0 then
+        local worker = entities[1]
+        
+        -- Worker movement controls
+        if key == "w" then
+            worker:moveNorth()
+            events.world_stats_updated.notify("Worker Movement", "North")
+        elseif key == "s" then
+            worker:moveSouth()
+            events.world_stats_updated.notify("Worker Movement", "South")
+        elseif key == "a" then
+            worker:moveWest()
+            events.world_stats_updated.notify("Worker Movement", "West")
+        elseif key == "d" then
+            worker:moveEast()
+            events.world_stats_updated.notify("Worker Movement", "East")
+        elseif key == "space" then
+            worker:stop()
+            events.world_stats_updated.notify("Worker Movement", "Stopped")
+        end
+    end
+end
 
 -- Handle keyboard input for camera movement
 function keyboard.handleCameraMovement(core, dt)
@@ -26,6 +54,9 @@ end
 
 -- Handle key press events
 function keyboard.keypressed(core, key)
+    -- Worker movement
+    keyboard.handleWorkerMovement(core, key)
+    
     -- Adjust camera speed
     if key == "pageup" then
         core.camera.moveSpeed = core.camera.moveSpeed * 1.5
@@ -39,8 +70,10 @@ function keyboard.keypressed(core, key)
     elseif key == "s" then
         events.toggle_shader_rendering.notify()
     -- Toggle debug visualization
-    elseif key == "d" then
-        events.debug_toggle.notify()
+    elseif key == "`" then
+        -- Toggle the debug state
+        debugVisualizationEnabled = not debugVisualizationEnabled
+        events.debug_toggle.notify(debugVisualizationEnabled)
     -- Toggle cube outlines
     elseif key == "o" then
         events.toggle_shader_outlines.notify()

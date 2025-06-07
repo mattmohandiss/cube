@@ -208,4 +208,36 @@ function core.getTerrainCubes()
   return core.terrainCubes
 end
 
+-- Entity storage
+core.entities = {} -- Will store active entities
+
+-- Add an entity to the world
+function core.addEntity(entity)
+  table.insert(core.entities, entity)
+  return entity
+end
+
+-- Remove an entity from the world
+function core.removeEntity(entity)
+  for i, e in ipairs(core.entities) do
+    if e == entity then
+      table.remove(core.entities, i)
+      return true
+    end
+  end
+  return false
+end
+
+-- Get all entities for rendering and updates
+function core.getEntities()
+  return core.entities
+end
+
+-- Update all entities
+function core.updateEntities(dt)
+  for _, entity in ipairs(core.entities) do
+    entity:update(dt)
+  end
+end
+
 return core

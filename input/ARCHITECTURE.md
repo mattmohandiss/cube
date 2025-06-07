@@ -21,6 +21,20 @@ The module provides intuitive camera movement through:
 1. **Directional Movement**: Arrow keys for panning the camera in the isometric space, translating 2D input into 3D movement.
 2. **Speed Adjustment**: Page Up/Down keys to adjust movement sensitivity, allowing users to control how quickly the camera responds to input.
 
+### Worker Entity Control
+The module provides controls for the worker entities in the world:
+
+1. **Directional Movement**: WASD keys for moving workers in cardinal directions (North, South, West, East).
+2. **Stop Movement**: Space key to halt worker movement.
+3. **Entity Selection**: Currently controls the first worker entity in the world.
+
+### Visual Toggles
+The module provides controls for toggling various visualization options:
+
+1. **Debug Visualization**: The '`' key toggles debug visualization mode, tracking state between toggle operations.
+2. **Shader Rendering**: The 'S' key toggles between different shader rendering modes.
+3. **Cube Outlines**: The 'O' key toggles the visibility of cube outlines in the rendering.
+
 ### Event Integration
 The input module integrates with the event system to:
 
@@ -47,8 +61,11 @@ The core algorithm for input processing follows this sequence:
 ## Integration with Other Modules
 
 1. **Camera Module**: The input module directly controls the camera, sending movement commands and adjusting position based on user input.
-2. **Event System**: Events are dispatched to notify other modules about changes in input state, such as movement speed adjustments.
-3. **Debug Module**: Movement speed and other input-related metrics are sent to the debug display for monitoring.
+2. **World Module**: The input module accesses the world module to retrieve entities for worker control.
+3. **Entity Module**: The input module sends movement commands to worker entities.
+4. **Event System**: Events are dispatched to notify other modules about changes in input state, such as movement speed adjustments and worker movement.
+5. **Debug Module**: Movement speed and other input-related metrics are sent to the debug display for monitoring. The module also controls the debug visualization toggle state.
+6. **Renderer Module**: The input module interacts with the renderer by toggling shader features such as debug visualization and outlines.
 
 ## Performance Considerations
 
@@ -58,6 +75,13 @@ The input handling is designed to be efficient:
 - **Rate Limiting**: Movement is tied to frame delta time for consistent speed regardless of frame rate
 - **Minimal State**: Maintaining only essential state information to reduce memory overhead
 - **Event Optimization**: Using events selectively to avoid performance impact from excessive event broadcasting
+
+## State Management
+
+The input module maintains state for various toggle features:
+
+1. **Debug Visualization State**: Tracks whether debug visualization is enabled or disabled, ensuring consistent behavior when toggling.
+2. **Toggle Persistence**: The state of toggles is maintained between key presses, allowing features to be turned on and off.
 
 ## Extendability
 

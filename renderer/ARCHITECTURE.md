@@ -2,96 +2,133 @@
 
 ## Overview
 
-The renderer module provides GPU-accelerated rendering for 3D isometric cubes using GLSL shaders and hardware instancing. It handles shader management, mesh generation, and optimized rendering of large cube-based worlds.
+The renderer module provides a shape-agnostic, flexible rendering system that supports different geometries (such as cubes) and billboard sprites. It abstracts the complexities of GPU programming while focusing on the core mechanics of rendering rather than specific shape details.
 
-The module serves as the core rendering system that enables efficient rendering of complex scenes with thousands of cubes in a single draw call. It abstracts the complexities of GPU programming while providing high-performance rendering for the isometric cube world.
+This module serves as the foundation for all rendering in the application, providing a unified interface for rendering different types of objects while delegating shape-specific rendering logic to the appropriate shape modules.
 
 ## Module Structure
 
-The renderer module is divided into three logical components, each with a specific responsibility:
+The renderer module is divided into several logical components, each with a specific responsibility:
 
-1. **Core**: Manages shader loading, compilation, and uniform updates. Handles the foundational shader operations and provides an interface for updating shader parameters.
-2. **Mesh**: Implements mesh generation and instance data creation. Responsible for creating the base cube geometry and generating per-instance data for efficient rendering.
-3. **Rendering**: Orchestrates the GPU-based rendering process. Manages rendering state, coordinates with other modules, and provides the main rendering interface.
+1. **Core**: Manages shader loading, compilation, and uniform updates. Handles the foundational shader operations and provides a generic interface for rendering different types of objects.
+2. **Interfaces**: Defines the interfaces for different types of renderers (shape renderers, billboard renderers) to ensure consistent implementation.
+3. **Registry**: Manages registration and lookup of different renderer implementations to support extensibility.
+4. **Shapes**: Contains base implementations and utilities for shape renderers, but delegates shape-specific details to their respective modules.
+5. **Billboards**: Provides base implementations and utilities for billboard renderers to support sprite-based entities.
 
 ## Key Features / Algorithms
 
-### Shader-Based Isometric Projection
-The module implements isometric projection in the vertex shader:
+### Generic Shader Management
+The module provides a unified system for shader management:
 
-1. **Vertex Transformation**: Transforms 3D cube positions to 2D screen coordinates directly on the GPU.
-2. **View Transformation**: Applies camera position offsets and handles screen centering.
-3. **Optimized Projection Factors**: Uses carefully tuned projection factors that create visually pleasing isometric views.
-4. **Instanced Rendering**: Uses hardware instancing to efficiently render many cubes with a single draw call.
+1. **Centralized Shader Loading**: Loads and compiles shaders from external files with consistent error handling.
+2. **Shader Registry**: Manages shaders by name for easy reference by different renderers.
+3. **Uniform Management**: Provides utilities for updating shader uniforms with consistent patterns.
 
-### Instance Data Management
-For optimal GPU performance:
+### Renderer Interface System
+The module defines clear interfaces for different types of renderers:
 
-1. **Bitfield Visibility Encoding**: Represents face visibility as an efficient bitfield for GPU processing.
-2. **Per-Instance Attributes**: Provides position, color, and visibility information for each cube instance.
-3. **Dynamic Instance Updates**: Updates instance data when visible cubes change, minimizing GPU memory usage.
+1. **Shape Renderer Interface**: Defines the contract for renderers that handle 3D shapes.
+2. **Billboard Renderer Interface**: Defines the contract for renderers that handle 2D billboards in 3D space.
+3. **Interface Validation**: Ensures that renderer implementations adhere to the defined interfaces.
 
-### Face Culling and Lighting
-For visual consistency and performance:
+### Renderer Registry
+For extensibility and modularity:
 
-1. **GPU-Based Culling**: Hides invisible faces directly in the vertex shader.
-2. **Enhanced Lighting Model**: Implements a balanced lighting model with optimized brightness values for each face type and higher ambient light values to ensure sides are properly visible.
-3. **Directional Lighting**: Uses a configurable directional light to create consistent shading across all cubes.
-4. **Edge Detection**: Enhances visual appearance at view boundaries with special edge handling.
-5. **Geometric Edge Detection**: Uses fragment shader derivatives to detect and render precise outlines along the true geometric edges of cubes, providing visual definition with minimal performance impact.
+1. **Type-Based Registration**: Allows different renderers to register themselves by the type of object they render.
+2. **Lookup System**: Efficiently matches objects with their appropriate renderers.
+3. **Dynamic Dispatch**: Routes rendering calls to the appropriate renderer based on object type.
+
+### Rendering Pipeline
+For efficient rendering across different object types:
+
+1. **Object Grouping**: Groups objects by type for batch rendering.
+2. **Delegated Rendering**: Delegates rendering to specialized renderers for each object type.
+3. **State Management**: Handles graphics state transitions between different renderers.
 
 ## Data Flow
 
-1. **Initialization**: Shaders are loaded and compiled, and the base cube mesh is created
-2. **Preprocessing**: Visible cubes are determined by the world rendering system
-3. **Instance Data**: Per-cube instance data is generated with position, color, and visibility
-4. **Rendering**: A single instanced draw call renders all visible cubes
-5. **Uniform Updates**: Shader uniforms are updated when the camera position changes
-6. **Debug Information**: Performance metrics are collected and displayed
+1. **Initialization**: 
+   - Core renderer is initialized
+   - Shape and billboard renderers register themselves with the registry
+   - Shader programs are loaded and compiled
+
+2. **Object Preparation**:
+   - World module determines visible objects (shapes and billboards)
+   - Objects are tagged with their type for routing to appropriate renderers
+
+3. **Rendering Dispatch**:
+   - Objects are grouped by type
+   - Each group is sent to its registered renderer
+
+4. **Shape-Specific Rendering**:
+   - Shape renderers handle mesh creation and instance data management
+   - Camera information is passed to shape-specific shaders
+   - Shape-specific rendering logic is executed
+
+5. **Billboard-Specific Rendering**:
+   - Billboard renderers manage sprite rendering
+   - Billboards are sorted by depth
+   - Sprite sheets are managed efficiently
+
+6. **Debug Information**:
+   - Performance metrics are collected from various renderers
+   - Consolidated metrics are displayed
 
 ## Integration with Other Modules
 
-1. **World Module**: Receives visible cubes from the world module and renders them efficiently.
-2. **Cube Module**: Reuses cube geometry definitions and visibility information from the cube module.
-3. **Camera Module**: Coordinates with the camera module for proper projection and view transformations.
-4. **Debug Module**: Provides performance metrics and visual debugging options.
-5. **Events System**: Listens for window resize and debug toggle events.
+1. **World Module**: Receives visible objects from the world module and dispatches them to appropriate renderers.
+2. **Cube Module**: The cube module provides its own cube-specific renderer implementation.
+3. **Entity Module**: The entity module provides its own billboard-specific renderer implementation.
+4. **Camera Module**: Coordinates with the camera module for proper projection and view transformations.
+5. **Debug Module**: Collects and provides performance metrics and visual debugging options.
+6. **Events System**: Listens for window resize and debug toggle events.
 
 ## Performance Considerations
 
-- **Single Draw Call**: Uses hardware instancing to render all cubes in a single draw call, dramatically reducing CPU overhead
-- **GPU Acceleration**: Offloads geometry transformation and projection to the GPU
-- **Bitfield Encoding**: Compactly represents face visibility as a bitfield for efficient GPU processing
-- **Mesh Reuse**: Creates a single cube mesh that is reused for all instances
-- **Instance Attribute Packing**: Minimizes the amount of data transferred to the GPU
-- **Shader-Based Culling**: Performs face culling directly in the vertex shader
-- **Memory Management**: Properly releases old instance meshes to prevent memory leaks
-- **Hardware Support Detection**: Checks for instanced drawing support and provides clear error messages
-- **View Distance Optimization**: Applies efficient view distance filtering for performance
+- **Delegated Responsibility**: Each renderer is responsible for optimizing its specific rendering path
+- **Type-Based Batching**: Objects are grouped by type to minimize state changes
+- **Resource Management**: Centralized shader management reduces redundant resource creation
+- **Interface-Based Design**: Clear interfaces allow for specialized optimization without breaking the system
+- **Memory Management**: Proper resource cleanup across all renderers
+- **Hardware Support Detection**: Checks for required hardware features and provides clear error messages
+- **Shader Reuse**: Reuses shader programs where appropriate to minimize compilation overhead
+- **Specialized Implementations**: Each shape type can have specialized rendering optimizations
+- **View Distance Optimization**: Filtering of objects by distance is performed before dispatching to renderers
 
 ## Extendability
 
-The architecture is designed to be extended in several ways:
+The architecture is designed to be highly extensible:
 
-1. **Additional Shader Effects**: Add post-processing, shadows, or other visual enhancements
-2. **Alternative Rendering Techniques**: Support different rendering approaches while maintaining the same API
-3. **Custom Mesh Generators**: Create specialized mesh generators for different object types
+1. **New Shape Types**: Add new shape renderers by implementing the shape renderer interface
+2. **New Billboard Types**: Add new billboard renderers by implementing the billboard renderer interface
+3. **Shader Effects**: Add post-processing, shadows, or other visual enhancements
 4. **Material System**: Extend to support different materials with varying properties
-5. **Dynamic Lighting**: Implement more advanced lighting models with proper light sources
-6. **Texture Support**: Add texture mapping capabilities for more visual variety
+5. **Advanced Rendering Techniques**: Add new rendering techniques without changing the core architecture
+6. **Custom Pipeline Stages**: Extend the rendering pipeline with new stages as needed
+7. **Texture Systems**: Add texture management for different object types
+8. **Dynamic Lighting**: Implement more advanced lighting models with proper light sources
 
 ## Implementation Details
 
-### Shader Compilation and Management
-The module includes several optimizations for shader handling:
+### Interface Implementation
+The module uses Lua's metatables to implement interfaces:
+
+1. **Interface Definitions**: Clear definitions of required methods for each renderer type
+2. **Implementation Verification**: Runtime checking that interfaces are properly implemented
+3. **Inheritance Support**: Base implementations that can be extended by specific renderers
+
+### Registry System
+The registry system provides flexible lookup capabilities:
+
+1. **Type-Based Registration**: Renderers register themselves by the types they can render
+2. **Dynamic Discovery**: New renderers can be added at runtime
+3. **Fallback Handling**: Support for default renderers when specific ones aren't available
+
+### Shader Management
+The centralized shader system provides:
 
 1. **External File Loading**: Shaders are stored in separate GLSL files for better organization
 2. **Error Handling**: Robust error checking during shader compilation and linking
-3. **Uniform Caching**: Efficiently updates shader uniforms only when necessary
-
-### Instance Attribute System
-The instancing system leverages Love2D's mesh and attribute capabilities:
-
-1. **Attribute Attachment**: Attaches instance attributes to the base mesh
-2. **Dynamic Updating**: Efficiently updates instance data when the visible cube set changes
-3. **Attribute Mapping**: Maps Lua data structures to GPU-friendly formats
+3. **Uniform Management**: Standardized approach to updating shader uniforms
+4. **Screen Resize Handling**: Automatic updates of shader uniforms on window resize

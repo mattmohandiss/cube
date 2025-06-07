@@ -1,7 +1,8 @@
 -- world/init.lua
--- Main world module that brings together core, terrain, and rendering functionality
+-- Main world module that brings together core, terrain, entities, and rendering functionality
 
 local events = require('events')
+local camera = require('camera')
 
 -- Internal module requires
 local core = require('world.core')
@@ -31,6 +32,10 @@ function world.init(options)
   -- Expose rendering functions
   world.renderTerrain = function(cameraPosition)
     return rendering.renderTerrain(core.terrainCubes, cameraPosition)
+  end
+  
+  world.renderEntities = function(cameraPosition)
+    return rendering.renderEntities(core.getEntities(), cameraPosition)
   end
   
   -- Notify of world initialization
@@ -70,8 +75,8 @@ end
 
 -- Update world (called each frame)
 function world.update(dt)
-  -- Currently no per-frame updates needed
-  -- Could be used for animations or dynamic terrain in the future
+  -- Update all entities
+  core.updateEntities(dt)
 end
 
 -- Get all terrain cubes
@@ -99,7 +104,66 @@ end
 
 -- Render the world with the current camera position
 function world.render(cameraPosition)
-  return rendering.renderTerrain(core.terrainCubes, cameraPosition)
+  -- Render terrain first (cubes)
+  rendering.renderTerrain(core.terrainCubes, cameraPosition)
+  
+  -- Then render entities (billboards)
+  rendering.renderEntities(core.getEntities(), cameraPosition)
+  
+  -- [COMMENTED OUT] Directly draw the worker entity for debugging - bypassing GPU rendering
+  --[[ 
+  local entities = core.getEntities()
+  if #entities > 0 then
+    for i, entity in ipairs(entities) do
+      if entity.spritesheet and entity.spritesheet.image then
+        -- Get the current animation frame
+        local quad = entity:getCurrentQuad()
+        if quad then
+          -- Get screen coordinates
+          local screenX, screenY = camera.iso(entity.x, entity.y, entity.z)
+          
+          -- Draw a solid debug outline
+          love.graphics.setColor(0, 1, 0, 0.8) -- Bright green
+          love.graphics.rectangle("line", 
+            screenX - 25, screenY - 50, 
+            50, 50)
+          love.graphics.print("Direct Draw", screenX - 25, screenY - 65)
+          
+          -- Reset color for sprite drawing
+          love.graphics.setColor(1, 1, 1, 1)
+          
+          -- Draw the entity sprite directly
+          love.graphics.draw(
+            entity.spritesheet.image,
+            quad,
+            screenX, screenY,
+            0,                         -- Rotation
+            2, 2,                      -- Scale (larger for visibility)
+            entity.width/2,            -- Origin X (center)
+            entity.height              -- Origin Y (bottom)
+          )
+        end
+      end
+    end
+  end
+  --]]
+  
+  return true
+end
+
+-- Add an entity to the world
+function world.addEntity(entity)
+  return core.addEntity(entity)
+end
+
+-- Remove an entity from the world
+function world.removeEntity(entity)
+  return core.removeEntity(entity)
+end
+
+-- Get all entities
+function world.getEntities()
+  return core.getEntities()
 end
 
 -- Export the world configuration for external access

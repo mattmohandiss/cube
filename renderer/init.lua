@@ -1,5 +1,23 @@
 -- renderer/init.lua
--- Entry point for the renderer module
+-- Main entry point for the renderer module
 
--- Re-export the rendering module as the main interface
-return require('renderer.rendering')
+-- Core rendering functionality
+local rendering = require('renderer.rendering')
+
+-- Create the public API
+local renderer = {
+  -- Initialization
+  init = rendering.init,
+  
+  -- View distance configuration (may be adjusted by other modules)
+  viewDistance = rendering.viewDistance,
+  
+  -- Rendering functions
+  renderShapes = rendering.renderShapes,
+  renderBillboards = rendering.renderBillboards,
+  
+  -- Visual options
+  toggleOutlines = rendering.toggleOutlines
+}
+
+return renderer

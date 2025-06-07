@@ -1,21 +1,16 @@
 -- renderer/rendering.lua
--- GPU-based cube rendering system using shaders and instanced drawing
+-- Core rendering system that delegates to shape-specific renderers
 
 local rendering = {}
 
 local events = require('events')
 local dbg = require('dbg')
 local camera = require('camera')
-local shaderCore = require('renderer.core')
-local shaderMesh = require('renderer.mesh')
+local rendererCore = require('renderer.core')
+local registry = require('renderer.registry')
 
 -- Configuration
 rendering.viewDistance = 64
-
--- Internal state
-local baseCubeMesh = nil
-local instanceMesh = nil
-local instanceCount = 0
 
 -- Initialize the renderer
 function rendering.init()
@@ -29,97 +24,56 @@ function rendering.init()
         return false
     end
     
-    -- Initialize shaders
-    shaderCore.init()
+    -- Initialize core renderer
+    rendererCore.init()
     
-    -- Create base cube mesh
-    baseCubeMesh = shaderMesh.create()
+    -- Load shape-specific renderers
+    -- The cube renderer will register itself when loaded
+    local cubeRenderer = require('cube.rendering')
+    cubeRenderer:setViewDistance(rendering.viewDistance)
+    
+    -- Load billboard-specific renderers
+    -- The entity billboard renderer will register itself when loaded
+    local entityRenderer = require('entity.rendering')
     
     -- Add debug information
     dbg.setValue("GPU Rendering", "Enabled")
     events.world_stats_updated.notify("GPU Rendering", "Enabled")
     dbg.setValue("Draw Calls", 0)
-    dbg.setValue("Instances Rendered", 0)
-    dbg.setValue("Total Triangles", 0)
-    
-    -- Subscribe to debug toggle
-    events.debug_toggle.listen(function(isVisible)
-        shaderCore.toggleDebug(isVisible)
-    end)
     
     return true
 end
 
--- Create or update instance data
-function rendering.updateInstanceData(visibleCubes)
-    -- Create new instance data
-    local newInstanceMesh, newInstanceCount = shaderMesh.createInstanceData(visibleCubes)
-    
-    -- Update state
-    if instanceMesh then
-        instanceMesh:release() -- Release previous mesh to avoid memory leaks
-    end
-    
-    instanceMesh = newInstanceMesh
-    instanceCount = newInstanceCount
-    
-    -- Attach instance attributes to the base mesh
-    baseCubeMesh:attachAttribute("InstancePosition", instanceMesh, "perinstance")
-    baseCubeMesh:attachAttribute("InstanceColor", instanceMesh, "perinstance")
-    baseCubeMesh:attachAttribute("InstanceVisibility", instanceMesh, "perinstance")
-    
-    return instanceCount
-end
-
--- Render cubes using the shader
-function rendering.render(cubes, cameraPosition)
-    if not baseCubeMesh then
-        error("Rendering system not properly initialized")
-    end
-    
-    -- Update shader uniforms
-    shaderCore.updateCubeShader(cameraPosition, rendering.viewDistance)
-    
-    -- Update instance data
-    rendering.updateInstanceData(cubes)
-    
-    -- Enable depth testing and depth writing
-    -- This ensures faces behind other faces are properly occluded
-    love.graphics.setDepthMode("lequal", true)
-    
-    -- Ensure we're using the correct blend mode (no alpha blending)
-    love.graphics.setBlendMode("alpha", "premultiplied")
-    
-    -- Render all cubes in a single draw call
-    love.graphics.setShader(shaderCore.cube)
-    
-    -- Ensure outline settings are correctly applied before drawing
-    local worldRendering = require('world.rendering')
-    shaderCore.cube:send("enableOutlines", worldRendering.outlinesEnabled)
-    
-    -- Force shader to use the latest uniform values
-    love.graphics.flushBatch()
-    
-    -- Draw the instanced cubes
-    love.graphics.drawInstanced(baseCubeMesh, instanceCount)
-    
-    -- Reset the shader and graphics state
-    love.graphics.setShader()
-    love.graphics.setDepthMode()
-    love.graphics.setBlendMode("alpha")
+-- Render shapes using the registered shape renderers
+-- This delegates to the appropriate shape renderers based on shape type
+function rendering.renderShapes(shapes, cameraPosition)
+    -- Delegate to core renderer
+    rendererCore.renderShapes(shapes, cameraPosition)
     
     -- Update debug stats
     local stats = love.graphics.getStats()
     dbg.setValue("Draw Calls", stats.drawcalls)
-    dbg.setValue("Instances Rendered", instanceCount)
-    dbg.setValue("Total Triangles", instanceCount * 12) -- 12 triangles per cube (2 per face)
     
-    return cubes
+    return shapes
 end
 
--- Function to toggle cube outlines
+-- Render billboards using the registered billboard renderers
+-- This delegates to the appropriate billboard renderers based on billboard type
+function rendering.renderBillboards(billboards, cameraPosition)
+    -- Delegate to core renderer
+    rendererCore.renderBillboards(billboards, cameraPosition)
+    
+    return billboards
+end
+
+-- Function to toggle shape outlines
 function rendering.toggleOutlines(enabled)
-    return shaderCore.toggleOutlines(enabled)
+    -- Get the cube renderer
+    local cubeRenderer = registry.getShapeRenderer("cube")
+    if cubeRenderer then
+        return cubeRenderer:toggleOutlines(enabled)
+    end
+    return false
 end
 
 return rendering

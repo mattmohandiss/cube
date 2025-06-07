@@ -3,7 +3,7 @@
 // Global uniforms
 uniform vec2 screenSize;        // Window dimensions
 uniform vec3 cameraPosition;    // Camera position in world space
-uniform float tileSize;         // Base tile size for scaling
+uniform float tileSize;         // Base tile size for scaling - should match camera.projection.tileSize (currently 50)
 uniform float viewDistance;     // Maximum render distance
 
 // Per-instance attributes

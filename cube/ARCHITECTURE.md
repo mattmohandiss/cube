@@ -6,14 +6,15 @@ The cube module provides a comprehensive system for managing and manipulating 3D
 
 The module serves as a core building block of the 3D visualization system, providing the data structures and algorithms needed to represent cubes with proper depth and perspective effects. It abstracts the complexities of 3D geometry while offering a clean interface for the rest of the application.
 
-The module focuses on cube data representation, leaving all rendering operations to the dedicated renderer module which uses GPU-accelerated rendering via GLSL shaders with hardware instancing.
+The module focuses on cube data representation and implements a cube-specific renderer that follows the renderer module's interfaces. This way, the cube module contains all cube-specific logic, while the renderer module handles the mechanics of rendering.
 
 ## Module Structure
 
-The cube module is divided into two logical components, each with a specific responsibility:
+The cube module is divided into three logical components, each with a specific responsibility:
 
 1. **Core**: Manages basic cube properties, creation, and initialization. Handles the fundamental data structures that represent a cube and provides the public API for cube instantiation.
 2. **Geometry**: Handles cube vertices, faces, and visibility calculations. Implements the mathematical operations for determining cube structure and which faces should be visible.
+3. **Rendering**: Implements the shape renderer interface for cubes, handling cube-specific mesh generation, instance data creation, and the rendering process.
 
 ## Key Features / Algorithms
 
@@ -54,7 +55,7 @@ Each cube maintains essential properties for representation and rendering:
 
 ## Integration with Other Modules
 
-1. **Renderer Module**: The cube data is used by the renderer module for GPU-accelerated drawing.
+1. **Renderer Module**: The cube module implements the renderer module's shape renderer interface, allowing the renderer to delegate cube-specific rendering operations back to the cube module.
 2. **World Module**: Manages collections of cubes and updates their visibility based on neighbors.
 3. **Event System**: Debug information about vertices and faces is broadcast through events for monitoring and debugging.
 4. **Debug Module**: Visual debugging features are coordinated with the debug module to enable development tools.
@@ -86,16 +87,29 @@ The architecture is designed to be extended in several ways:
 
 ## Implementation Details (Optional)
 
-### Rendering Optimizations
+### Cube Renderer Implementation
+The module implements a cube-specific renderer with several optimizations:
+
+1. **Interface Implementation**: Implements the shape renderer interface defined by the renderer module, allowing for consistent integration.
+2. **Cube-Specific Mesh Generation**: Efficiently creates cube geometry based on face definitions and corner offsets.
+3. **Instance Data Management**: Creates optimized instance data for GPU rendering, including position, color, and visibility.
+4. **Hardware Instancing**: Uses hardware instancing to render thousands of cubes in a single draw call.
+5. **Shader Management**: Manages cube-specific shader parameters and uniforms.
+6. **Visibility Optimization**: Encodes face visibility as bitfields for efficient GPU processing.
+7. **Memory Management**: Properly releases old instance meshes to prevent memory leaks.
+8. **Outline Rendering**: Implements cube outline rendering for visual clarity.
+9. **View Distance Handling**: Optimizes rendering based on configured view distance.
+10. **Debug Information**: Provides detailed performance metrics for debugging and optimization.
+
+### Data Management Optimizations
 The module includes several optimizations to achieve high performance:
 
 1. **Creation-time Computation**: Stores 3D corner positions at cube creation time to avoid recalculating during rendering
 2. **Precomputed Visibility**: Determines which faces are visible based on the fixed camera angle during cube creation
 3. **Streamlined Rendering**: Minimizes calculations during the render loop by leveraging precomputed data
 4. **Neighbor-Based Face Culling**: Provides functionality to update visible faces based on neighbors, hiding interior faces that would never be seen
-5. **Enhanced Edge Detection**: Shows faces at the boundary of the view distance with special handling for corner cases. Side faces of cubes at corners are always shown regardless of neighbors, creating a clean visual edge as the camera moves through the world
+5. **Enhanced Edge Detection**: Shows faces at the boundary of the view distance with special handling for corner cases
 6. **Cache Invalidation**: Intelligently invalidates caches when world structure changes occur
 7. **Adjacent Cube Updates**: When cubes are added or removed, only the affected neighbors have their visibility recalculated
-8. **GPU-Accelerated Rendering**: Provides a shader-based rendering system that leverages hardware instancing to draw thousands of cubes in a single draw call
-9. **Bitfield Visibility Flags**: Encodes face visibility data as bitfields for efficient processing on the GPU
-10. **Unified Lighting Model**: Maintains consistent lighting between CPU and GPU rendering approaches
+8. **Bitfield Visibility Flags**: Encodes face visibility data as bitfields for efficient processing on the GPU
+9. **Unified Lighting Model**: Maintains consistent lighting across the application

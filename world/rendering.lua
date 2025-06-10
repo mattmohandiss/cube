@@ -4,6 +4,7 @@
 local camera = require('camera')
 local events = require('events')
 local renderer = require('renderer')
+local rendererCore = require('renderer.core')
 
 local rendering = {}
 
@@ -158,32 +159,6 @@ function rendering.renderEntities(entities, cameraPosition)
     end
   end
   
-  -- [COMMENTED OUT] Debug visualization for entities using standard LÖVE drawing
-  --[[
-  for _, entity in ipairs(visibleEntities) do
-    -- Draw a colored box at the entity position
-    local camera = require('camera')
-    local screenX, screenY = camera.iso(entity.x, entity.y, entity.z)
-    
-    -- Save current state
-    local r, g, b, a = love.graphics.getColor()
-    local mode = love.graphics.getBlendMode()
-    
-    -- Draw debug box using standard LÖVE functions (not GPU-based)
-    love.graphics.setBlendMode("alpha")
-    love.graphics.setColor(1, 0, 1, 0.8) -- Bright magenta
-    love.graphics.rectangle("fill", screenX - 10, screenY - 20, 20, 20)
-    
-    -- Draw position label
-    love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.print("Entity", screenX - 15, screenY - 35)
-    
-    -- Restore state
-    love.graphics.setColor(r, g, b, a)
-    love.graphics.setBlendMode(mode)
-  end
-  --]]
-  
   -- Use GPU renderer for billboards (entities)
   local renderedEntities = renderer.renderBillboards(visibleEntities, cameraPosition)
   
@@ -191,6 +166,59 @@ function rendering.renderEntities(entities, cameraPosition)
   events.world_stats_updated.notify("Visible Entities", #visibleEntities)
   
   return renderedEntities
+end
+
+-- Render the entire scene using our centralized rendering approach
+function rendering.renderScene(terrainCubes, entities, cameraPosition)
+  -- Get only the cubes that are within view distance
+  local visibleCubes = rendering.getVisibleCubes(terrainCubes, cameraPosition)
+  
+  -- Add shape type to cubes for the renderer
+  for _, cube in ipairs(visibleCubes) do
+    cube.type = "cube"
+  end
+  
+  -- Filter entities by view distance
+  local visibleEntities = {}
+  local maxDistanceSquared = rendering.viewDistance * rendering.viewDistance
+  
+  if entities and #entities > 0 then
+    for _, entity in ipairs(entities) do
+      local distanceX = math.abs(entity.x - cameraPosition.x)
+      
+      -- Early exit: if x distance alone exceeds view distance, skip
+      if distanceX <= rendering.viewDistance then
+        local distanceY = math.abs(entity.y - cameraPosition.y)
+        
+        -- Early exit: if y distance alone exceeds view distance, skip
+        if distanceY <= rendering.viewDistance then
+          -- Only calculate squared distance if we're within range on both axes
+          local distanceSquared = distanceX * distanceX + distanceY * distanceY
+          
+          if distanceSquared <= maxDistanceSquared then
+            -- Add billboard type to entities for the renderer
+            entity.type = "entity_billboard"
+            table.insert(visibleEntities, entity)
+          end
+        end
+      end
+    end
+  end
+  
+  -- Create a scene object with all renderable elements
+  local scene = {
+    cubes = visibleCubes,
+    entities = visibleEntities
+  }
+  
+  -- Use the core renderer to render everything in the correct order
+  rendererCore.renderScene(scene, cameraPosition)
+  
+  -- Update debug information
+  events.world_stats_updated.notify("Visible Cubes", #visibleCubes)
+  events.world_stats_updated.notify("Visible Entities", #visibleEntities)
+  
+  return true
 end
 
 return rendering

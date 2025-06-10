@@ -22,8 +22,8 @@ function love.load()
   -- Set up world with terrain generation options
   local worldOptions = {
     size = {
-      width = 250,
-      length = 250,
+      width = 20,
+      length = 20,
       height = 16
     },
     terrain = {
@@ -59,8 +59,8 @@ function love.load()
       terrainHeight = terrainCube.z + 1 -- Position one block above the terrain
     else
       events.world_stats_updated.notify("Terrain Cube at " .. x .. "," .. y, 
-        "NOT FOUND - Using z=1")
-      terrainHeight = 1 -- Fallback if no terrain found
+        "NOT FOUND - Using z=10")
+      terrainHeight = 10 -- Use higher z value for better visibility
     end
     return terrainHeight
   end
@@ -79,11 +79,11 @@ function love.load()
     local worldX = pos.gridX - worldCore.config.size.width/2
     local worldY = pos.gridY - worldCore.config.size.length/2
     
-    -- Get terrain height at this position
-    local terrainHeight = getTerrainHeight(0, 0)
+    -- Get terrain height at the actual worker position
+    local terrainHeight = getTerrainHeight(worldX, worldY)
     
     -- Create worker with world coordinates
-    local worker = game.createWorker(worldX, worldY, terrainHeight)
+    local worker = game.createWorker(worldX, worldY, 10)
     
     -- Set worker direction and state
     worker:setState("idle_" .. pos.direction)

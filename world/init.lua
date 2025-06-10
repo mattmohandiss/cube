@@ -38,6 +38,11 @@ function world.init(options)
     return rendering.renderEntities(core.getEntities(), cameraPosition)
   end
   
+  -- Add unified rendering function that uses our enhanced core
+  world.renderScene = function(cameraPosition)
+    return rendering.renderScene(core.terrainCubes, core.getEntities(), cameraPosition)
+  end
+  
   -- Notify of world initialization
   events.world_stats_updated.notify("World Module", "Initialized")
 end
@@ -104,51 +109,9 @@ end
 
 -- Render the world with the current camera position
 function world.render(cameraPosition)
-  -- Render terrain first (cubes)
-  rendering.renderTerrain(core.terrainCubes, cameraPosition)
-  
-  -- Then render entities (billboards)
-  rendering.renderEntities(core.getEntities(), cameraPosition)
-  
-  -- [COMMENTED OUT] Directly draw the worker entity for debugging - bypassing GPU rendering
-  --[[ 
-  local entities = core.getEntities()
-  if #entities > 0 then
-    for i, entity in ipairs(entities) do
-      if entity.spritesheet and entity.spritesheet.image then
-        -- Get the current animation frame
-        local quad = entity:getCurrentQuad()
-        if quad then
-          -- Get screen coordinates
-          local screenX, screenY = camera.iso(entity.x, entity.y, entity.z)
-          
-          -- Draw a solid debug outline
-          love.graphics.setColor(0, 1, 0, 0.8) -- Bright green
-          love.graphics.rectangle("line", 
-            screenX - 25, screenY - 50, 
-            50, 50)
-          love.graphics.print("Direct Draw", screenX - 25, screenY - 65)
-          
-          -- Reset color for sprite drawing
-          love.graphics.setColor(1, 1, 1, 1)
-          
-          -- Draw the entity sprite directly
-          love.graphics.draw(
-            entity.spritesheet.image,
-            quad,
-            screenX, screenY,
-            0,                         -- Rotation
-            2, 2,                      -- Scale (larger for visibility)
-            entity.width/2,            -- Origin X (center)
-            entity.height              -- Origin Y (bottom)
-          )
-        end
-      end
-    end
-  end
-  --]]
-  
-  return true
+  -- Use our new centralized rendering approach
+  -- This handles proper depth sorting and transparency in one unified pass
+  return rendering.renderScene(core.terrainCubes, core.getEntities(), cameraPosition)
 end
 
 -- Add an entity to the world

@@ -12,8 +12,8 @@ The entity module is divided into four logical components, each with a specific 
 
 1. **Core**: Manages entity properties, creation, and basic functionality. Handles the fundamental data structures that represent an entity and provides the public API for entity instantiation.
 2. **Animation**: Implements spritesheet management, frame selection, and animation state handling. Responsible for loading textures and calculating the correct sprite frame to display based on entity state.
-3. **Rendering**: Contains the legacy rendering functionality for entities.
-4. **Billboard Renderer**: Implements the billboard renderer interface defined by the renderer module, handling entity-specific billboard rendering while adhering to the common interface.
+3. **Rendering**: Implements GPU-accelerated billboard rendering for entities, using shaders to efficiently display entities in the isometric world.
+4. **Types**: Contains definitions for different entity types with their specialized behaviors and animations.
 
 ## Key Features / Algorithms
 

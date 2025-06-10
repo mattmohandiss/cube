@@ -108,6 +108,32 @@ The architecture is designed to be highly extensible:
 6. **Custom Pipeline Stages**: Extend the rendering pipeline with new stages as needed
 7. **Texture Systems**: Add texture management for different object types
 8. **Dynamic Lighting**: Implement more advanced lighting models with proper light sources
+9. **Rendering Passes**: The centralized rendering system supports additional passes for effects like shadows or reflections
+
+## Hybrid Rendering Approach
+
+The renderer now uses a hybrid approach that balances specialized renderers with centralized coordination:
+
+1. **Specialized Renderers**: Each object type (cubes, billboards) has its own specialized renderer optimized for its specific needs
+2. **Centralized Coordination**: The core renderer orchestrates the overall rendering process with features like:
+   - **Unified Depth Management**: Standardized depth calculation and handling
+   - **Multi-Pass Rendering**: Opaque objects first, transparent objects second
+   - **Consistent Camera Integration**: Central management of camera state across all renderers
+   - **Shared Resource Management**: Common shader uniforms and state management
+
+This hybrid approach provides:
+- **Performance**: Through specialized renderers for each object type
+- **Consistency**: Through centralized depth and camera handling
+- **Maintainability**: Through clear separation of concerns
+- **Extensibility**: Through well-defined interfaces and central coordination
+
+### Depth Management
+
+The renderer implements a standardized approach to depth handling:
+- Depth values are calculated consistently across all renderers
+- Small offsets are applied to prevent Z-fighting between different object types
+- Transparent objects use depth testing but not depth writing
+- Opaque objects both test against and write to the depth buffer
 
 ## Implementation Details
 

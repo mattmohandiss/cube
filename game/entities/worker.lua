@@ -15,7 +15,8 @@ function worker.new(x, y, z, config)
   -- Calculate the scale based on the camera's tileSize
   -- The ideal size is for the worker to be 1 tile wide
   -- If sprite is 16px wide and we want it to cover a tile width (tileSize/2 in screen space)
-  local scaleFactor = camera.tileSize / (16 * 2)
+  -- Multiply by 2 to make it twice as large for better visibility
+  local scaleFactor = (camera.tileSize / 16) * 2
   
   local worker_entity = entity.create(x, y, z, {
     spritesheet = "assets/worker.png",

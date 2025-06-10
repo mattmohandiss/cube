@@ -9,6 +9,13 @@ local registry = require('renderer.registry')
 -- Registered shaders collection
 core.shaders = {}
 
+-- Configuration for unified depth handling
+core.depthConfig = {
+    standardScale = 200.0,  -- The divisor used to normalize world depth to NDC
+    zFighting = 0.001,      -- Small offset to prevent Z-fighting
+    billboardOffset = 0.01  -- Slight offset for billboards to prevent Z-fighting with cubes
+}
+
 -- Initialize renderer core
 function core.init()
     -- Initialize registry
@@ -95,6 +102,66 @@ function core.toggleShaderOutlines(shader, enabled)
     end
 end
 
+-- Unified depth calculation function
+function core.calculateDepth(x, y, z, objectType)
+    local worldDepth = -x - y - z * 2
+    
+    -- Apply slight offsets based on object type to prevent Z-fighting
+    if objectType == "billboard" then
+        worldDepth = worldDepth + core.depthConfig.billboardOffset
+    end
+    
+    -- Normalize to NDC space (-1 to 1)
+    return worldDepth / core.depthConfig.standardScale
+end
+
+-- Function to set depth testing mode based on object properties
+function core.setDepthMode(transparent)
+    if transparent then
+        -- For transparent objects: test against depth buffer but don't write to it
+        love.graphics.setDepthMode("lequal", false)
+    else
+        -- For opaque objects: test against and write to depth buffer
+        love.graphics.setDepthMode("lequal", true)
+    end
+end
+
+-- Central function to update all registered shaders with camera information
+function core.updateAllShadersWithCamera(cameraPosition)
+    for name, shader in pairs(core.shaders) do
+        if shader then
+            -- Update camera position
+            if shader:hasUniform("cameraPosition") then
+                shader:send("cameraPosition", {
+                    cameraPosition.x or 0,
+                    cameraPosition.y or 0,
+                    cameraPosition.z or 0
+                })
+            end
+            
+            -- Update screenSize (in case it changed)
+            if shader:hasUniform("screenSize") then
+                local w, h = love.graphics.getDimensions()
+                shader:send("screenSize", {w, h})
+            end
+            
+            -- Update tileSize if the shader uses it
+            if shader:hasUniform("tileSize") then
+                local camera = require('camera')
+                shader:send("tileSize", camera.tileSize)
+            end
+            
+            -- Update depthScale if the shader uses it
+            if shader:hasUniform("depthScale") then
+                shader:send("depthScale", core.depthConfig.standardScale)
+            end
+        end
+    end
+    
+    -- Force GPU to apply the uniform changes
+    love.graphics.flushBatch()
+end
+
 -- Render shapes using the appropriate renderers
 function core.renderShapes(shapes, cameraPosition)
     -- Group shapes by type
@@ -141,6 +208,53 @@ function core.renderBillboards(billboards, cameraPosition)
             renderer:render(instances, cameraPosition)
         end
     end
+end
+
+-- Rendering pass types
+core.PASS = {
+    OPAQUE = 1,      -- Fully opaque objects that write to depth buffer
+    TRANSPARENT = 2  -- Objects with transparency that don't write to depth
+}
+
+-- Function to perform rendering in the correct order
+function core.renderScene(scene, cameraPosition)
+    -- Update all shaders with camera info
+    core.updateAllShadersWithCamera(cameraPosition)
+    
+    -- FIRST PASS: Render opaque objects
+    -- Clear depth buffer before first pass
+    love.graphics.clear(false, true)
+    
+    -- Render opaque cubes
+    if scene.cubes and #scene.cubes > 0 then
+        local cubeRenderer = registry.getShapeRenderer("cube")
+        if cubeRenderer then
+            -- Set depth mode for opaque objects
+            core.setDepthMode(false)
+            cubeRenderer:render(scene.cubes, cameraPosition)
+        end
+    end
+    
+    -- SECOND PASS: Render transparent objects
+    -- Billboards are typically transparent
+    if scene.entities and #scene.entities > 0 then
+        local entityRenderer = registry.getBillboardRenderer("entity_billboard")
+        if entityRenderer then
+            -- Sort entities by depth (back to front is important for transparency)
+            table.sort(scene.entities, function(a, b)
+                return a.depth > b.depth
+            end)
+            
+            -- Set depth mode for transparent objects
+            core.setDepthMode(true)
+            entityRenderer:render(scene.entities, cameraPosition)
+        end
+    end
+    
+    -- Reset graphics state
+    love.graphics.setDepthMode()
+    love.graphics.setBlendMode("alpha")
+    love.graphics.setShader()
 end
 
 return core

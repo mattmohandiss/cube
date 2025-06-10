@@ -208,8 +208,8 @@ function CubeRenderer:render(cubes, cameraPosition)
   self.baseMesh:attachAttribute("InstanceColor", self.instanceMesh, "perinstance")
   self.baseMesh:attachAttribute("InstanceVisibility", self.instanceMesh, "perinstance")
   
-  -- Enable depth testing and depth writing
-  love.graphics.setDepthMode("lequal", true)
+  -- Use the standardized depth mode setter for opaque objects
+  rendererCore.setDepthMode(false)
   
   -- Ensure we're using the correct blend mode (no alpha blending)
   love.graphics.setBlendMode("alpha", "premultiplied")

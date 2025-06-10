@@ -28,7 +28,7 @@ The metrics component tracks several key performance indicators:
 ### Event Integration
 The events component connects the debug module to the rest of the application:
 
-1. **Event Subscriptions**: Listening for important application events using the event system's subscription mechanism.
+1. **Categorized Event Subscriptions**: Listening for important application and debug events using the event system's categorized subscription mechanism.
 2. **Automatic Updates**: Refreshing debug values based on system changes, ensuring the display always shows current information.
 3. **Cross-Module Communication**: Capturing state from other modules without creating direct dependencies.
 
@@ -59,7 +59,7 @@ The rendering component provides a structured display of information:
 
 1. **Camera Module**: The debug module displays position and projection information from the camera, helping visualize the camera state and movement.
 2. **Cube Module**: Face and vertex debug information from the cube module is captured and displayed, aiding in geometry troubleshooting.
-3. **Event System**: By subscribing to application-wide events, the debug module stays updated with changes across the application without direct coupling.
+3. **Event System**: The debug module subscribes to categorized events (app and debug events), enabling it to monitor system state without direct coupling to other modules.
 4. **Input Module**: Keyboard shortcuts are processed to control debug visibility and interact with debug features.
 
 ## Performance Considerations

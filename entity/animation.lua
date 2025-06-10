@@ -26,6 +26,9 @@ function animation.loadSpritesheet(path, sprite_width, sprite_height)
     return nil
   end
   
+  -- Set nearest-neighbor filtering for pixel art to prevent blurry scaling
+  image:setFilter("nearest", "nearest")
+  
   -- Create the spritesheet data
   local sheet = {
     image = image,

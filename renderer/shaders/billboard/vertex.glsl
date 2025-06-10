@@ -35,12 +35,13 @@ vec4 position(mat4 transform_projection, vec4 vertex_position) {
     // The key insight is that we need to calculate world coordinates similar to how cube vertices are positioned
     float vertexOffsetScale = 0.02; // Scale factor to make entities reasonable size
     
-    // The billboard vertices should be positioned like a cube face, varying in both X and Y world coordinates
-    // For a vertical billboard facing the camera, we'll use a front-facing approach:
+        // For a true camera-facing billboard, we position based on the mesh vertices
+    // Since we've modified the mesh to have bottom-middle as origin, this places
+    // the bottom-middle of the sprite at the entity's coordinates
     vec3 worldPosition = vec3(
-        EntityPosition.x + vertex_position.x * EntitySize.x * vertexOffsetScale,        // X varies for width
-        EntityPosition.y + vertex_position.x * EntitySize.x * vertexOffsetScale * 0.5,  // Y varies with X to maintain isometric angle (matching cube faces)
-        EntityPosition.z + vertex_position.y * EntitySize.y * vertexOffsetScale      // Z varies for height (removed negation to fix upside-down issue)
+        EntityPosition.x + vertex_position.x * EntitySize.x * vertexOffsetScale,      // X varies for width
+        EntityPosition.y,                                                             // Y is fixed at entity position
+        EntityPosition.z + vertex_position.y * EntitySize.y * vertexOffsetScale       // Z varies for height
     );
     
     // 2. Apply camera offset (EXACTLY like cube shader)

@@ -30,6 +30,7 @@ The animation system manages multi-frame animations from spritesheets:
 1. **State-Based Animation**: Different animations (idle, walking, etc.) are triggered based on entity state.
 2. **Time-Based Frame Selection**: Animation frames advance based on elapsed time and configured animation speed.
 3. **Row-Column Organization**: Spritesheets are organized with different animation sequences in rows and frames in columns.
+4. **Pixel Art Optimized**: Uses nearest-neighbor filtering for crisp, clean pixel art scaling without blurring.
 
 ### Entity Position Management
 Entities exist in the same coordinate space as cubes:
@@ -60,6 +61,7 @@ Entities exist in the same coordinate space as cubes:
 - **Sprite Batching**: Entities using the same spritesheet can be rendered together to reduce draw calls
 - **Efficient Animation Updates**: Only process animation changes when necessary
 - **GPU-Accelerated Billboard Rendering**: Shaders handle the billboard effect efficiently on the GPU
+- **Pixel-Perfect Rendering**: Nearest-neighbor filtering ensures pixel art maintains its crisp appearance when scaled
 - **Depth Pre-sorting**: Entities are sorted by depth for proper layering with minimal CPU overhead
 - **Texture Atlas Support**: The spritesheet system supports texture atlases for efficient GPU memory usage
 - **Minimal State Changes**: Rendering is organized to minimize texture and shader state changes

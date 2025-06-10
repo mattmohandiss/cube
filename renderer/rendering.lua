@@ -20,7 +20,7 @@ function rendering.init()
     if not supported.instancing then
         print("Error: Instanced rendering is not supported on this GPU.")
         print("GPU-based rendering is required for this application.")
-        events.world_stats_updated.notify("GPU Rendering", "Not Supported")
+        events.debug.world_stats_updated.notify("GPU Rendering", "Not Supported")
         return false
     end
     
@@ -38,7 +38,7 @@ function rendering.init()
     
     -- Add debug information
     dbg.setValue("GPU Rendering", "Enabled")
-    events.world_stats_updated.notify("GPU Rendering", "Enabled")
+    events.debug.world_stats_updated.notify("GPU Rendering", "Enabled")
     dbg.setValue("Draw Calls", 0)
     
     return true

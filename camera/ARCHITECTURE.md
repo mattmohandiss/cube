@@ -86,6 +86,7 @@ The architecture is designed to be extended in several ways:
 
 1. Add different projection types beyond isometric (perspective, orthographic, etc.)
 2. Implement camera effects such as rotation, zoom, and field-of-view adjustments
+   - Zoom functionality has been implemented using mouse wheel input to adjust the tileSize parameter
 3. Enhance rendering with additional visual effects like depth-of-field or atmospheric perspective
 4. Optimize depth calculations for specific use cases or large numbers of objects
 5. Add camera animation capabilities for cinematic sequences

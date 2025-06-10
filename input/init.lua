@@ -4,6 +4,7 @@
 -- Internal module requires
 local core = require('input.core')
 local keyboard = require('input.keyboard')
+local mouse = require('input.mouse')
 
 -- Create the main input object
 local input = {}
@@ -22,6 +23,11 @@ end
 -- Handle key press events
 function input.keypressed(key)
     keyboard.keypressed(core, key)
+end
+
+-- Handle mouse wheel movement for zooming
+function input.wheelmoved(x, y)
+    mouse.handleCameraZoom(core, y)
 end
 
 return input

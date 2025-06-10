@@ -27,7 +27,9 @@ The terrain is created using Perlin noise, a gradient noise function that produc
 The terrain system converts noise values into usable game elements:
 
 1. **Height Mapping**: Transforms noise values into terrain elevation at each coordinate.
-2. **Terrain Types**: Assigns different terrain characteristics based on height and other factors.
+2. **Terrain Types**: Assigns different terrain characteristics based on height and coordinates:
+   - Height-based coloring for varied terrain appearance
+   - Special "spawn" type (orange color) for the cube at coordinates (0,0)
 3. **Cube Representation**: Converts terrain data into 3D cubes positioned appropriately in the world.
 4. **Dynamic Cube Management**: Provides functions to add and remove cubes with proper updating of visibility and sorting.
 

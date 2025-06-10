@@ -16,19 +16,19 @@ function keyboard.handleWorkerMovement(core, key)
         -- Worker movement controls
         if key == "w" then
             worker:moveNorth()
-            events.world_stats_updated.notify("Worker Movement", "North")
+            events.debug.world_stats_updated.notify("Worker Movement", "North")
         elseif key == "s" then
             worker:moveSouth()
-            events.world_stats_updated.notify("Worker Movement", "South")
+            events.debug.world_stats_updated.notify("Worker Movement", "South")
         elseif key == "a" then
             worker:moveWest()
-            events.world_stats_updated.notify("Worker Movement", "West")
+            events.debug.world_stats_updated.notify("Worker Movement", "West")
         elseif key == "d" then
             worker:moveEast()
-            events.world_stats_updated.notify("Worker Movement", "East")
+            events.debug.world_stats_updated.notify("Worker Movement", "East")
         elseif key == "space" then
             worker:stop()
-            events.world_stats_updated.notify("Worker Movement", "Stopped")
+            events.debug.world_stats_updated.notify("Worker Movement", "Stopped")
         end
     end
 end
@@ -60,23 +60,20 @@ function keyboard.keypressed(core, key)
     -- Adjust camera speed
     if key == "pageup" then
         core.camera.moveSpeed = core.camera.moveSpeed * 1.5
-        events.world_stats_updated.notify("Movement Speed", core.camera.moveSpeed)
+        events.debug.world_stats_updated.notify("Movement Speed", core.camera.moveSpeed)
     elseif key == "pagedown" then
         core.camera.moveSpeed = core.camera.moveSpeed * 0.75
-        events.world_stats_updated.notify("Movement Speed", core.camera.moveSpeed)
+        events.debug.world_stats_updated.notify("Movement Speed", core.camera.moveSpeed)
     elseif key == "escape" then
         love.event.quit()
-    -- Toggle shader rendering
-    elseif key == "s" then
-        events.toggle_shader_rendering.notify()
     -- Toggle debug visualization
     elseif key == "`" then
         -- Toggle the debug state
         debugVisualizationEnabled = not debugVisualizationEnabled
-        events.debug_toggle.notify(debugVisualizationEnabled)
+        events.system.debug_toggle.notify(debugVisualizationEnabled)
     -- Toggle cube outlines
     elseif key == "o" then
-        events.toggle_shader_outlines.notify()
+        events.system.toggle_cube_outlines.notify()
     end
 end
 

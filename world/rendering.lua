@@ -32,16 +32,16 @@ function rendering.init()
   rendering.outlinesEnabled = true -- Initial state (matches the default in renderer/core.lua)
   
   -- Add toggle for cube outlines
-  events.toggle_shader_outlines.listen(function()
+  events.system.toggle_cube_outlines.listen(function()
     rendering.outlinesEnabled = not rendering.outlinesEnabled
     renderer.toggleOutlines(rendering.outlinesEnabled)
-    events.world_stats_updated.notify("Cube Outlines", 
+    events.debug.world_stats_updated.notify("Cube Outlines", 
                                      rendering.outlinesEnabled and "Enabled" or "Disabled")
   end)
   
-  events.world_stats_updated.notify("Terrain View Distance", rendering.viewDistance)
-  events.world_stats_updated.notify("Cube Outlines", rendering.outlinesEnabled and "Enabled" or "Disabled")
-  events.world_stats_updated.notify("Rendering Mode", "GPU Only")
+  events.debug.world_stats_updated.notify("Terrain View Distance", rendering.viewDistance)
+  events.debug.world_stats_updated.notify("Cube Outlines", rendering.outlinesEnabled and "Enabled" or "Disabled")
+  events.debug.world_stats_updated.notify("Rendering Mode", "GPU Only")
 end
 
 -- Invalidate all caches when world structure changes
@@ -111,7 +111,7 @@ function rendering.renderTerrain(terrainCubes, cameraPosition)
   local renderedCubes = renderer.renderShapes(visibleCubes, cameraPosition)
   
   -- Update debug information
-  events.world_stats_updated.notify("Visible Cubes", #visibleCubes)
+  events.debug.world_stats_updated.notify("Visible Cubes", #visibleCubes)
   
   return renderedCubes
 end
@@ -120,17 +120,17 @@ end
 function rendering.renderEntities(entities, cameraPosition)
   -- If no entities, skip rendering
   if not entities or #entities == 0 then
-    events.world_stats_updated.notify("Entities for Rendering", "None")
+    events.debug.world_stats_updated.notify("Entities for Rendering", "None")
     return entities
   end
   
-  events.world_stats_updated.notify("Entities Count", #entities)
+  events.debug.world_stats_updated.notify("Entities Count", #entities)
   
   -- Debug output
   for i, entity in ipairs(entities) do
-    events.world_stats_updated.notify("Entity " .. i .. " Position", 
+    events.debug.world_stats_updated.notify("Entity " .. i .. " Position", 
       entity.x .. "," .. entity.y .. "," .. entity.z)
-    events.world_stats_updated.notify("Entity " .. i .. " State", 
+    events.debug.world_stats_updated.notify("Entity " .. i .. " State", 
       entity.state or "none")
   end
   
@@ -163,7 +163,7 @@ function rendering.renderEntities(entities, cameraPosition)
   local renderedEntities = renderer.renderBillboards(visibleEntities, cameraPosition)
   
   -- Update debug information
-  events.world_stats_updated.notify("Visible Entities", #visibleEntities)
+  events.debug.world_stats_updated.notify("Visible Entities", #visibleEntities)
   
   return renderedEntities
 end
@@ -215,8 +215,8 @@ function rendering.renderScene(terrainCubes, entities, cameraPosition)
   rendererCore.renderScene(scene, cameraPosition)
   
   -- Update debug information
-  events.world_stats_updated.notify("Visible Cubes", #visibleCubes)
-  events.world_stats_updated.notify("Visible Entities", #visibleEntities)
+  events.debug.world_stats_updated.notify("Visible Cubes", #visibleCubes)
+  events.debug.world_stats_updated.notify("Visible Entities", #visibleEntities)
   
   return true
 end

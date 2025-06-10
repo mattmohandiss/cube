@@ -22,8 +22,8 @@ function love.load()
   -- Set up world with terrain generation options
   local worldOptions = {
     size = {
-      width = 20,
-      length = 20,
+      width = 250,
+      length = 250,
       height = 16
     },
     terrain = {
@@ -39,73 +39,60 @@ function love.load()
   world.init(worldOptions)
 
   -- Initial camera position event
-  events.camera_moved.notify(camera.position.x, camera.position.y)
+  events.app.camera_moved.notify(camera.position.x, camera.position.y)
 
   -- Add debug values via events
-  events.world_stats_updated.notify("Number of Terrain Cubes", #world.getCubes())
-  events.world_stats_updated.notify("Movement Speed", camera.moveSpeed)
-  
-  -- Calculate the middle of the grid (in grid coordinates)
-  local middleGridX = math.floor(worldCore.config.size.width/2)
-  local middleGridY = math.floor(worldCore.config.size.length/2)
+  events.debug.world_stats_updated.notify("Number of Terrain Cubes", #world.getCubes())
+  events.debug.world_stats_updated.notify("Movement Speed", camera.moveSpeed)
   
   -- Function to get terrain height at a position (in world coordinates)
   local function getTerrainHeight(x, y)
-    local terrainHeight = 0
-    local terrainCube = world.getCubeAt(x, y, 0)
-    if terrainCube then
-      events.world_stats_updated.notify("Terrain Cube at " .. x .. "," .. y, 
-        "Found at z=" .. terrainCube.z)
-      terrainHeight = terrainCube.z + 1 -- Position one block above the terrain
-    else
-      events.world_stats_updated.notify("Terrain Cube at " .. x .. "," .. y, 
-        "NOT FOUND - Using z=10")
-      terrainHeight = 10 -- Use higher z value for better visibility
+    -- Try all possible heights to find the cube
+    for z = 1, worldCore.config.size.height do
+      local terrainCube = world.getCubeAt(x, y, z)
+      if terrainCube then
+        -- Use the logical height (integer) for calculations
+        local logicalZ = terrainCube.logicalZ or z
+        events.debug.world_stats_updated.notify("Terrain Cube at " .. x .. "," .. y, 
+          "Found at z=" .. logicalZ)
+        return logicalZ + 1 -- Position one block above the terrain
+      end
     end
-    return terrainHeight
+    
+    -- If no cube found after checking all heights
+    events.debug.world_stats_updated.notify("Terrain Cube at " .. x .. "," .. y, 
+      "NOT FOUND - Using z=10")
+    return 10 -- Default height if no cube found
   end
   
-  -- Define four positions and directions for workers (in grid coordinates)
-  local workerPositions = {
-    {gridX = middleGridX, gridY = middleGridY, direction = "east"},      -- East worker
-    -- {gridX = middleGridX - 5, gridY = middleGridY, direction = "west"},      -- West worker
-    -- {gridX = middleGridX, gridY = middleGridY - 5, direction = "north"},     -- North worker
-    -- {gridX = middleGridX, gridY = middleGridY + 5, direction = "south"}      -- South worker
-  }
+  -- Create a single worker at position x=0, y=0, z=height+1
+  local worldX = 0
+  local worldY = 0
   
-  -- Create and add workers
-  for i, pos in ipairs(workerPositions) do
-    -- Convert grid coordinates to world coordinates (same transformation as used for cubes)
-    local worldX = pos.gridX - worldCore.config.size.width/2
-    local worldY = pos.gridY - worldCore.config.size.length/2
-    
-    -- Get terrain height at the actual worker position
-    local terrainHeight = getTerrainHeight(worldX, worldY)
-    
-    -- Create worker with world coordinates
-    local worker = game.createWorker(worldX, worldY, 10)
-    
-    -- Set worker direction and state
-    worker:setState("idle_" .. pos.direction)
-    worker.frame = 1
-    worker.frame_timer = 0
-    worker:face(pos.direction)
-    worker:stop() -- Ensure zero velocity to stay in idle state
-    
-    -- Add the worker to the world
-    world.addEntity(worker)
-    
-    -- Debug info
-    events.world_stats_updated.notify(
-      "Worker " .. i,
-      "Position: " .. worldX .. "," .. worldY .. "," .. terrainHeight .. 
-      " | Grid: " .. pos.gridX .. "," .. pos.gridY ..
-      " | Facing: " .. pos.direction
-    )
-  end
+  -- Find the cube at (0,0) and get its z value
+  local terrainHeight = getTerrainHeight(worldX, worldY)
+  
+  -- Create worker with world coordinates
+  local worker = game.createWorker(worldX, worldY, terrainHeight)
+  
+  -- Set worker direction and state
+  worker:setState("idle_east")
+  worker.frame = 1
+  worker.frame_timer = 0
+  worker:face("east")
+  worker:stop() -- Ensure zero velocity to stay in idle state
+  
+  -- Add the worker to the world
+  world.addEntity(worker)
+  
+  -- Debug info
+  events.debug.world_stats_updated.notify(
+    "Worker",
+    "Position: " .. worldX .. "," .. worldY .. "," .. terrainHeight
+  )
   
   -- Add debug values
-  events.world_stats_updated.notify("Entities", #world.getEntities())
+  events.debug.world_stats_updated.notify("Entities", #world.getEntities())
 end
 
 -- LÖVE update callback
@@ -139,8 +126,14 @@ function love.keypressed(key)
   input.keypressed(key)
 end
 
+-- LÖVE wheelmoved callback for mouse wheel events
+function love.wheelmoved(x, y)
+  -- Pass wheel movement to input module for zoom handling
+  input.wheelmoved(x, y)
+end
+
 -- LÖVE resize callback
 function love.resize(width, height)
   -- Notify all listeners that the window has been resized
-  events.window_resized.notify(width, height)
+  events.system.window_resized.notify(width, height)
 end

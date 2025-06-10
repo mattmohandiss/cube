@@ -25,7 +25,7 @@ function core.init()
     local screenWidth, screenHeight = love.graphics.getDimensions()
     
     -- Subscribe to window resize events
-    events.window_resized.listen(function(width, height)
+    events.system.window_resized.listen(function(width, height)
         -- Update all registered shaders with new screen size
         for _, shader in pairs(core.shaders) do
             if shader then
@@ -148,7 +148,7 @@ function core.updateAllShadersWithCamera(cameraPosition)
             -- Update tileSize if the shader uses it
             if shader:hasUniform("tileSize") then
                 local camera = require('camera')
-                shader:send("tileSize", camera.tileSize)
+                shader:send("tileSize", camera.projection.tileSize)
             end
             
             -- Update depthScale if the shader uses it

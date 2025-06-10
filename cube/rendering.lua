@@ -8,8 +8,9 @@ local dbg = require('dbg')
 local events = require('events')
 
 -- Create the cube renderer
-local CubeRenderer = setmetatable({}, { __index = BaseShapeRenderer })
+local CubeRenderer = {}
 CubeRenderer.__index = CubeRenderer
+setmetatable(CubeRenderer, { __index = BaseShapeRenderer })
 
 -- Constructor
 function CubeRenderer.new()
@@ -30,7 +31,7 @@ function CubeRenderer:init()
   local camera = require('camera')
   
   -- Set default uniform values
-  self.shader:send("tileSize", camera.tileSize) -- Use camera's tile size
+  self.shader:send("tileSize", camera.projection.tileSize) -- Use camera's tile size
   self.shader:send("showDebugInfo", false)
   self.shader:send("enableOutlines", true) -- Enable cube outlines by default
   
@@ -45,13 +46,13 @@ function CubeRenderer:init()
   self.initialized = true
   
   -- Register for debug toggle
-  events.debug_toggle.listen(function(isVisible)
+  events.system.debug_toggle.listen(function(isVisible)
     rendererCore.toggleShaderDebug(self.shader, isVisible)
   end)
   
   -- Add debug information
   dbg.setValue("GPU Cube Rendering", "Enabled")
-  events.world_stats_updated.notify("GPU Cube Rendering", "Enabled")
+  events.debug.world_stats_updated.notify("GPU Cube Rendering", "Enabled")
   
   return self
 end

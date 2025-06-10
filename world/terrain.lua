@@ -32,7 +32,7 @@ function terrain.init(seed)
     terrain.perm[i + 256] = p[i % 256]
   end
   
-  events.world_stats_updated.notify("Terrain Generator", "Initialized with seed " .. seed)
+  events.debug.world_stats_updated.notify("Terrain Generator", "Initialized with seed " .. seed)
 end
 
 -- Fade function for Perlin noise
@@ -134,7 +134,7 @@ function terrain.generateHeightmap(width, length, options)
   local baseHeight = options.baseHeight or 0
   local maxHeight = options.maxHeight or 8
   
-  events.world_stats_updated.notify("Generating Terrain", width .. "x" .. length)
+  events.debug.world_stats_updated.notify("Generating Terrain", width .. "x" .. length)
   
   -- Initialize the heightmap array
   for x = 1, width do
@@ -180,7 +180,7 @@ function terrain.generateHeightmap(width, length, options)
     end
   end
   
-  events.world_stats_updated.notify("Terrain Generated", "Complete")
+  events.debug.world_stats_updated.notify("Terrain Generated", "Complete")
   
   return heightmap
 end

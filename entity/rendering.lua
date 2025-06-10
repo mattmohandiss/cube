@@ -34,7 +34,7 @@ function EntityRenderer:init()
   self.baseMesh = self:createMesh()
   
   -- Listen for window resize events to update shader
-  events.window_resized.listen(function(width, height)
+  events.system.window_resized.listen(function(width, height)
     self.shader:send("screenSize", {width, height})
   end)
   
@@ -47,11 +47,12 @@ function EntityRenderer:createMesh()
   -- Create a simple quad mesh with LÖVE's default format
   -- LÖVE automatically handles VertexPosition and VertexTexCoord
   -- Flip the Y texture coordinates to correct the upside-down sprite issue
+  -- Set origin at bottom-middle (feet of sprite) instead of center
   local mesh = love.graphics.newMesh({
-    {-0.5, -0.5, 0, 1},  -- Bottom-left corner (x,y,u,v) - v flipped to 1
-    { 0.5, -0.5, 1, 1},  -- Bottom-right corner - v flipped to 1
-    { 0.5,  0.5, 1, 0},  -- Top-right corner - v flipped to 0
-    {-0.5,  0.5, 0, 0}   -- Top-left corner - v flipped to 0
+    {-0.5, 0, 0, 1},     -- Bottom-left corner (x,y,u,v) - v flipped to 1
+    { 0.5, 0, 1, 1},     -- Bottom-right corner - v flipped to 1
+    { 0.5, 1, 1, 0},     -- Top-right corner - v flipped to 0
+    {-0.5, 1, 0, 0}      -- Top-left corner - v flipped to 0
   }, "fan", "static")
   
   return mesh
@@ -112,7 +113,7 @@ function EntityRenderer:updateShader(cameraPosition)
   rendererCore.updateShaderCamera(self.shader, cameraPosition, self.viewDistance)
   
   -- Log minimal debug info
-  events.world_stats_updated.notify("Camera Position", 
+  events.debug.world_stats_updated.notify("Camera Position", 
     cameraPosition.x .. "," .. cameraPosition.y .. "," .. (cameraPosition.z or 0))
 end
 
@@ -123,7 +124,7 @@ function EntityRenderer:render(entities, cameraPosition)
   end
   
   if not entities or #entities == 0 then 
-    events.world_stats_updated.notify("Rendering Entities", "None to render")
+    events.debug.world_stats_updated.notify("Rendering Entities", "None to render")
     return 
   end
   
@@ -158,7 +159,7 @@ function EntityRenderer:render(entities, cameraPosition)
   end
   
   -- Basic performance metric
-  events.world_stats_updated.notify("Rendering Entities", valid_entity_count .. " / " .. #entities)
+  events.debug.world_stats_updated.notify("Rendering Entities", valid_entity_count .. " / " .. #entities)
   
   -- Track how many entities we've drawn
   local drawn_count = 0
@@ -194,7 +195,7 @@ function EntityRenderer:render(entities, cameraPosition)
   end
   
   -- Update debug info
-  events.world_stats_updated.notify("Entities Drawn", drawn_count)
+  events.debug.world_stats_updated.notify("Entities Drawn", drawn_count)
 end
 
 -- Create a singleton instance

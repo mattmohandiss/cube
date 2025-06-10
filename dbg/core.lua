@@ -17,7 +17,7 @@ function core.init()
     core.debugFont = love.graphics.newFont(12)
     
     -- Setup debug toggle event
-    events.debug_toggle.listen(function(isVisible)
+    events.system.debug_toggle.listen(function(isVisible)
         -- If parameter is provided, set to that value, otherwise toggle
         if isVisible ~= nil then
             core.visible = isVisible
@@ -26,7 +26,7 @@ function core.init()
         end
         
         -- Notify about state change
-        events.world_stats_updated.notify("Debug Mode", core.visible and "Enabled" or "Disabled")
+        events.debug.world_stats_updated.notify("Debug Mode", core.visible and "Enabled" or "Disabled")
     end)
 end
 

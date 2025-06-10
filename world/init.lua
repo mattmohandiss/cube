@@ -44,7 +44,7 @@ function world.init(options)
   end
   
   -- Notify of world initialization
-  events.world_stats_updated.notify("World Module", "Initialized")
+  events.debug.world_stats_updated.notify("World Module", "Initialized")
 end
 
 -- Generate a new world

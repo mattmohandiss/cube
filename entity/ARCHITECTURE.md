@@ -33,11 +33,24 @@ The animation system manages multi-frame animations from spritesheets:
 4. **Pixel Art Optimized**: Uses nearest-neighbor filtering for crisp, clean pixel art scaling without blurring.
 
 ### Entity Position Management
-Entities exist in the same coordinate space as cubes:
+Entities use a unified coordinate system for both game logic and rendering:
 
-1. **3D Position**: Entities have x, y, and z coordinates in the world.
-2. **Depth Calculation**: The same depth formula used for cubes ensures proper visual layering.
-3. **Velocity-Based Movement**: Support for smooth movement with velocity components.
+1. **Logical Coordinates**: The entity's position in the game world
+   - `x`, `y`, `z` properties represent the logical position in the world
+   - Used for game mechanics, collision detection, and entity-world interactions
+   - Consistent with the cube storage system for easy lookups
+
+2. **Visual Transformation**: The rendering system handles visual transformations
+   - Billboard shader maintains the bottom-center anchor point (feet position)
+   - Cube shader maintains the center anchor point
+   - Visual adjustments happen in the shader, keeping game logic simple
+
+3. **Depth Calculation**: The same depth formula used for cubes ensures proper visual layering
+   - Consistent depth sorting between entities and cubes
+   - Shader adjustments ensure proper alignment despite different anchor points
+
+4. **Velocity-Based Movement**: Support for smooth movement with velocity components
+   - Position updates automatically update the entity's depth
 
 ## Data Flow
 
@@ -45,8 +58,7 @@ Entities exist in the same coordinate space as cubes:
 2. **Initialization**: The animation system loads and configures the spritesheet
 3. **State Management**: Entity states trigger different animations
 4. **Update Cycle**: Entity positions and animations are updated each frame
-5. **Depth Calculation**: Proper depth is calculated for sorting with world objects
-6. **Rendering**: Entities are rendered as billboards with the current animation frame
+5. **Rendering**: Entities are rendered as billboards with the current animation frame, with depth sorting handled by the GPU
 
 ## Integration with Other Modules
 
@@ -62,7 +74,7 @@ Entities exist in the same coordinate space as cubes:
 - **Efficient Animation Updates**: Only process animation changes when necessary
 - **GPU-Accelerated Billboard Rendering**: Shaders handle the billboard effect efficiently on the GPU
 - **Pixel-Perfect Rendering**: Nearest-neighbor filtering ensures pixel art maintains its crisp appearance when scaled
-- **Depth Pre-sorting**: Entities are sorted by depth for proper layering with minimal CPU overhead
+- **GPU Depth Sorting**: Entities are properly layered with cubes using the GPU's depth buffer
 - **Texture Atlas Support**: The spritesheet system supports texture atlases for efficient GPU memory usage
 - **Minimal State Changes**: Rendering is organized to minimize texture and shader state changes
 - **Culling By Distance**: Entities outside the view distance are not processed or rendered

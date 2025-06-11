@@ -129,11 +129,12 @@ This hybrid approach provides:
 
 ### Depth Management
 
-The renderer implements a standardized approach to depth handling:
-- Depth values are calculated consistently across all renderers
+The renderer implements a GPU-based approach to depth handling:
+- Depth values are calculated directly in the vertex shaders
 - Small offsets are applied to prevent Z-fighting between different object types
-- Transparent objects use depth testing but not depth writing
-- Opaque objects both test against and write to the depth buffer
+- Both sprites and cubes write to the depth buffer for proper occlusion
+- Alpha testing in fragment shaders ensures transparent pixels don't affect depth
+- No CPU-side depth sorting is needed, improving performance and simplifying code
 
 ## Implementation Details
 

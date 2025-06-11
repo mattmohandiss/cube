@@ -102,9 +102,8 @@ function core.createTerrainCubes()
         local worldZ = height / 2 -- Place the cube with its bottom at ground level
         
         -- Create the cube and add it to our collection
-        local terrainCube = cube.new(worldX, worldY, worldZ, color)
-        -- Store the logical integer height for lookups
-        terrainCube.logicalZ = height
+        -- worldZ is now the logical position directly (not half the height)
+        local terrainCube = cube.new(worldX, worldY, height, color)
         table.insert(core.terrainCubes, terrainCube)
         
         -- Add to lookup map using integer coordinates for quick neighbor access
@@ -113,10 +112,7 @@ function core.createTerrainCubes()
     end
   end
   
-  -- Sort all terrain cubes once by depth (farthest first)
-  table.sort(core.terrainCubes, function(a, b)
-    return a.depth > b.depth
-  end)
+  -- No need to sort cubes by depth anymore - GPU depth buffer handles this
   
   -- Update debug information
   events.debug.world_stats_updated.notify("Terrain Cubes", #core.terrainCubes)
@@ -124,24 +120,17 @@ end
 
 -- Function to add a new cube to the world
 function core.addCube(x, y, z, color)
-  -- Create a new cube (z is the visual height - half of logical height)
+  -- Create a new cube (z is the logical height directly)
   local cube = require('cube')
   local newCube = cube.new(x, y, z, color)
-  
-  -- Store the logical integer height (z*2 if it was passed as a visual height)
-  local logicalZ = math.floor(z * 2)
-  newCube.logicalZ = logicalZ
   
   -- Add to terrain cubes array
   table.insert(core.terrainCubes, newCube)
   
-  -- Add to lookup map using integer coordinates for quick neighbor access
-  core.addCubeToMap(x, y, logicalZ, newCube)
+  -- Add to lookup map using logical coordinates for quick neighbor access
+  core.addCubeToMap(x, y, z, newCube)
   
-  -- Re-sort all terrain cubes by depth (farthest first)
-  table.sort(core.terrainCubes, function(a, b)
-    return a.depth > b.depth
-  end)
+  -- No need to sort cubes by depth anymore - GPU depth buffer handles this
   
   -- Invalidate world caches
   require('world.rendering').invalidateCache()
@@ -151,12 +140,9 @@ end
 
 -- Function to remove a cube from the world
 function core.removeCube(x, y, z)
-  -- z parameter should be the logical height (integer)
-  -- If passed a visual height, convert it to logical height
-  local logicalZ = math.type(z) == "integer" and z or math.floor(z * 2)
   
   -- Find the cube in the terrain cubes array
-  local cubeToRemove = core.getCubeAt(x, y, logicalZ)
+  local cubeToRemove = core.getCubeAt(x, y, z)
   if not cubeToRemove then
     return false -- Cube not found
   end
@@ -171,7 +157,7 @@ function core.removeCube(x, y, z)
   
   -- Remove from cube map
   if core.cubeMap[x] and core.cubeMap[x][y] then
-    core.cubeMap[x][y][logicalZ] = nil
+    core.cubeMap[x][y][z] = nil
   end
   
   -- Invalidate world caches

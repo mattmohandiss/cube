@@ -22,16 +22,14 @@ function core.new(x, y, z, color)
   z = z or 0
   color = color or { 1, 1, 1 }
   
-  -- Add precomputed depth for sorting using the camera's function
-  local depth = camera.calculateIsoDepth(x, y, z)
-  
   -- With GPU rendering, we only need essential properties
+  -- Depth sorting is now handled entirely by the GPU
   local cube = { 
     x = x, 
     y = y, 
     z = z, 
     color = color,
-    depth = depth  -- Keep depth for sorting
+    -- logicalZ = z   -- For compatibility with existing code, z is now the logical position
   }
   
   return cube

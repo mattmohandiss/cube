@@ -22,18 +22,14 @@ function core.new(x, y, z, sprite_info)
   z = z or 0
   sprite_info = sprite_info or {}
   
-  -- Add precomputed depth for sorting using the camera's function
-  local depth = camera.calculateIsoDepth(x, y, z)
-  
-  -- Create the entity with basic properties
-  local entity = { 
-    x = x, 
-    y = y, 
-    z = z,
-    width = sprite_info.width or 16,   -- Default sprite width
-    height = sprite_info.height or 16, -- Default sprite height
-    sprite_info = sprite_info,
-    depth = depth,                     -- Keep depth for sorting
+-- Create the entity with basic properties
+local entity = { 
+  x = x, 
+  y = y, 
+  z = z,               -- Z-coordinate (used for both game logic and rendering)
+  width = sprite_info.width or 16,   -- Default sprite width
+  height = sprite_info.height or 16, -- Default sprite height
+  sprite_info = sprite_info,
     -- Animation state
     state = "idle",                    -- Current animation state
     frame = 1,                         -- Current animation frame
@@ -45,8 +41,6 @@ function core.new(x, y, z, sprite_info)
       -- Base update function to be extended
       self:updateAnimation(dt)
       self:updatePosition(dt)
-      -- Recalculate depth if position changed
-      self.depth = camera.calculateIsoDepth(self.x, self.y, self.z)
     end,
     updateAnimation = function(self, dt)
       -- Animation update logic to be implemented in animation.lua
@@ -62,16 +56,12 @@ function core.new(x, y, z, sprite_info)
       self.x = self.x + (dx or 0)
       self.y = self.y + (dy or 0)
       self.z = self.z + (dz or 0)
-      -- Recalculate depth
-      self.depth = camera.calculateIsoDepth(self.x, self.y, self.z)
     end,
     setPosition = function(self, x, y, z)
       -- Set absolute position
       self.x = x or self.x
       self.y = y or self.y
       self.z = z or self.z
-      -- Recalculate depth
-      self.depth = camera.calculateIsoDepth(self.x, self.y, self.z)
     end,
     setVelocity = function(self, vx, vy, vz)
       -- Set velocity components

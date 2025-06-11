@@ -7,7 +7,7 @@ uniform float tileSize;         // Base tile size for scaling - should match cam
 uniform float viewDistance;     // Maximum render distance
 
 // Per-instance attributes
-attribute vec3 InstancePosition; // Cube position (x,y,z)
+attribute vec3 InstancePosition; // Cube position (x,y,z) - logical position with center as anchor
 attribute vec4 InstanceColor;    // Cube color (r,g,b,a)
 attribute float InstanceVisibility; // Visibility flags for faces
 
@@ -74,12 +74,13 @@ vec4 position(mat4 transform_projection, vec4 vertex_position) {
     vec2 ndcPos = (screenPos / screenSize) * 2.0 - 1.0;
     
     // Calculate normalized depth value (-1 to 1)
-    // Use the isometric depth calculation to ensure proper depth ordering
+    // This exact formula is now shared between cube and billboard shaders
     // We negate the depth because in our case, "farther" objects (higher depth) should be drawn behind
     float depth = -(relativePosition.x + relativePosition.y + 2.0 * relativePosition.z) / (viewDistance * 3.0);
     
     // Clamp depth to valid NDC range
-    depth = clamp(depth, -0.999, 0.999);
+    // Using -0.99 to match the billboard shader exactly
+    depth = clamp(depth, -0.99, 0.99);
     
     // Final position (y is inverted in screen space)
     return vec4(ndcPos.x, -ndcPos.y, depth, 1.0);

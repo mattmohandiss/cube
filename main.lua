@@ -51,18 +51,25 @@ function love.load()
     for z = 1, worldCore.config.size.height do
       local terrainCube = world.getCubeAt(x, y, z)
       if terrainCube then
-        -- Use the logical height (integer) for calculations
-        local logicalZ = terrainCube.logicalZ or z
+        -- Get the z position for game mechanics (now directly used as logical position)
+        local cubeZ = terrainCube.z
         events.debug.world_stats_updated.notify("Terrain Cube at " .. x .. "," .. y, 
-          "Found at z=" .. logicalZ)
-        return logicalZ + 1 -- Position one block above the terrain
+          "Found at z=" .. cubeZ)
+        
+        -- Return z + 1 for one block above terrain
+        local entityZ = cubeZ + 1
+        
+        events.debug.world_stats_updated.notify("Worker Position",
+          "z=" .. entityZ)
+        
+        return entityZ -- Return the z-coordinate for the entity
       end
     end
     
     -- If no cube found after checking all heights
     events.debug.world_stats_updated.notify("Terrain Cube at " .. x .. "," .. y, 
       "NOT FOUND - Using z=10")
-    return 10 -- Default height if no cube found
+    return 10 -- Default height if no cube found (now directly using logical z)
   end
   
   -- Create a single worker at position x=0, y=0, z=height+1

@@ -26,6 +26,7 @@ end
 -- Move the camera by the given delta
 function camera.move(dx, dy)
   local px, py = core.move(dx, dy)
+  
   -- Emit event for camera position update
   events.app.camera_moved.notify(px, py)
 end
@@ -45,13 +46,8 @@ function camera.iso(x, y, z)
   return sx, sy
 end
 
--- Calculate isometric depth for sorting
--- This is kept for compatibility with existing code
-function camera.calculateIsoDepth(x, y, z)
-  -- This depth formula prioritizes x and y equally, with z having double impact
-  -- Same formula as used in the vertex shader for depth calculations
-  return - (x + y + 2*z)
-end
+-- Camera functionality no longer needs to calculate depth values
+-- as depth sorting is now handled entirely by the GPU
 
 -- Zoom the camera by adjusting the tile size
 function camera.zoom(zoomDelta)

@@ -13,7 +13,7 @@ core.shaders = {}
 core.depthConfig = {
     standardScale = 200.0,  -- The divisor used to normalize world depth to NDC
     zFighting = 0.001,      -- Small offset to prevent Z-fighting
-    billboardOffset = 0.01  -- Slight offset for billboards to prevent Z-fighting with cubes
+    billboardOffset = 0.01  -- Offset for billboards to ensure they appear in front of cubes at same position
 }
 
 -- Initialize renderer core
@@ -102,18 +102,8 @@ function core.toggleShaderOutlines(shader, enabled)
     end
 end
 
--- Unified depth calculation function
-function core.calculateDepth(x, y, z, objectType)
-    local worldDepth = -x - y - z * 2
-    
-    -- Apply slight offsets based on object type to prevent Z-fighting
-    if objectType == "billboard" then
-        worldDepth = worldDepth + core.depthConfig.billboardOffset
-    end
-    
-    -- Normalize to NDC space (-1 to 1)
-    return worldDepth / core.depthConfig.standardScale
-end
+-- Depth calculation is now handled entirely by the GPU shaders
+-- No CPU-side depth calculation is needed
 
 -- Function to set depth testing mode based on object properties
 function core.setDepthMode(transparent)
@@ -216,37 +206,27 @@ core.PASS = {
     TRANSPARENT = 2  -- Objects with transparency that don't write to depth
 }
 
--- Function to perform rendering in the correct order
+-- Function to perform rendering using GPU-based depth sorting
 function core.renderScene(scene, cameraPosition)
     -- Update all shaders with camera info
     core.updateAllShadersWithCamera(cameraPosition)
     
-    -- FIRST PASS: Render opaque objects
-    -- Clear depth buffer before first pass
+    -- Clear depth buffer before rendering
     love.graphics.clear(false, true)
     
-    -- Render opaque cubes
+    -- First render all cubes
     if scene.cubes and #scene.cubes > 0 then
         local cubeRenderer = registry.getShapeRenderer("cube")
         if cubeRenderer then
-            -- Set depth mode for opaque objects
-            core.setDepthMode(false)
             cubeRenderer:render(scene.cubes, cameraPosition)
         end
     end
     
-    -- SECOND PASS: Render transparent objects
-    -- Billboards are typically transparent
+    -- Then render all entities
+    -- (Alpha testing in the fragment shader will handle transparency)
     if scene.entities and #scene.entities > 0 then
         local entityRenderer = registry.getBillboardRenderer("entity_billboard")
         if entityRenderer then
-            -- Sort entities by depth (back to front is important for transparency)
-            table.sort(scene.entities, function(a, b)
-                return a.depth > b.depth
-            end)
-            
-            -- Set depth mode for transparent objects
-            core.setDepthMode(true)
             entityRenderer:render(scene.entities, cameraPosition)
         end
     end

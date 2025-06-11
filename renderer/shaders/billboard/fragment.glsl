@@ -1,25 +1,21 @@
 // Billboard entity fragment shader
+// Updated to work with the redesigned vertex shader
 
-// Using LÖVE's built-in 'tex' uniform
-// No need to redefine it
+// LÖVE automatically provides:
+// - 'tex' uniform for the texture
+// - VaryingTexCoord for texture coordinates from vertex shader
 
-// VaryingTexCoord is automatically passed from the vertex shader (LÖVE built-in)
-// Only declare our custom variables
-varying float vDepth;  // Our custom depth variable
+// Custom variables from vertex shader
+varying float vDepth;  // Depth value for potential post-processing
 
 vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords) {
-  // Debug visualization to confirm shader is running
-  // Draws a red square in the top-left corner of the screen
-  if (screen_coords.x < 50.0 && screen_coords.y < 50.0) {
-    return vec4(1.0, 0.0, 0.0, 1.0); // Red
-  }
-  
-  // Sample texture using LÖVE's built-in 'tex' uniform and VaryingTexCoord (which is a vec4)
+  // Sample texture using the coordinates from the vertex shader
   vec4 texColor = Texel(tex, VaryingTexCoord.xy);
   
-  // Discard fully transparent pixels
-  if (texColor.a < 0.01) discard;
+  // Discard transparent pixels with stronger threshold
+  // This ensures proper depth buffer handling for sprites with transparent backgrounds
+  if (texColor.a < 0.1) discard;
   
-  // Return texture color
+  // Return texture color multiplied by the LÖVE color
   return texColor * color;
 }

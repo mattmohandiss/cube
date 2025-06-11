@@ -131,10 +131,8 @@ function EntityRenderer:render(entities, cameraPosition)
   -- Update shader with camera information
   self:updateShader(cameraPosition)
   
-  -- Sort entities by depth
-  table.sort(entities, function(a, b)
-    return a.depth > b.depth
-  end)
+  -- No need to sort entities by depth anymore - GPU depth buffer handles this
+  -- We still keep the depth property on entities for debugging purposes
   
   -- Filter and group entities by spritesheet
   local entity_groups = {}
@@ -177,11 +175,38 @@ function EntityRenderer:render(entities, cameraPosition)
     self.baseMesh:attachAttribute("EntitySize", instanceMesh, "perinstance")
     self.baseMesh:attachAttribute("EntityUV", instanceMesh, "perinstance")
     
-    -- Use the standardized depth mode setter for transparent objects
-    rendererCore.setDepthMode(true)
+    -- Set proper depth testing mode for sprite objects
+    -- Test against AND write to depth buffer (alpha testing will handle transparency)
+    love.graphics.setDepthMode("lequal", true)
+    
+    -- Reset scissor testing to ensure full screen rendering
+    love.graphics.setScissor()
+    
+    -- Send all required uniforms to the shader with safety checks
+    -- This ensures consistent handling with other renderers
+    if self.shader:hasUniform("viewDistance") then
+        self.shader:send("viewDistance", self.viewDistance)
+    end
+    
+    if self.shader:hasUniform("depthScale") then
+        self.shader:send("depthScale", rendererCore.depthConfig.standardScale)
+    end
+    
+    if self.shader:hasUniform("billboardOffset") then
+        self.shader:send("billboardOffset", rendererCore.depthConfig.billboardOffset)
+    end
+    
+    -- Send tile size for consistent scaling
+    local camera = require('camera')
+    if self.shader:hasUniform("tileSize") then
+        self.shader:send("tileSize", camera.projection.tileSize)
+    end
     
     -- Set the shader and draw all entities in this group
     love.graphics.setShader(self.shader)
+    
+    -- Force a clean graphics state before drawing
+    love.graphics.setScissor()  -- Disable any scissor testing
     love.graphics.drawInstanced(self.baseMesh, instanceCount)
     
     -- Reset graphics state
